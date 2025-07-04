@@ -8,8 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Plus, Edit2, Trash2, ShoppingCart, Eye } from 'lucide-react';
+import { LogOut, Plus, Edit2, Trash2, ShoppingCart } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface BakeryItem {
   id: string;
@@ -21,25 +23,23 @@ interface BakeryItem {
 }
 
 interface Order {
-  orderId: string;
-  item: string;
+  id: string;
+  order_id: string;
+  item_name: string;
   quantity: number;
-  total: string;
-  customer: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    notes: string;
-  };
-  orderDate: string;
+  total_amount: number;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  customer_address: string;
+  special_notes?: string;
+  created_at: string;
 }
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [items, setItems] = useState<BakeryItem[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const queryClient = useQueryClient();
   const [editingItem, setEditingItem] = useState<BakeryItem | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItem, setNewItem] = useState({
@@ -57,25 +57,164 @@ const AdminDashboard = () => {
       navigate('/admin');
       return;
     }
-
-    // Load items and orders
-    loadItems();
-    loadOrders();
   }, [navigate]);
 
-  const loadItems = () => {
-    const savedItems = localStorage.getItem('bakeryItems');
-    if (savedItems) {
-      setItems(JSON.parse(savedItems));
+  // Fetch bakery items from Supabase
+  const { data: items = [], isLoading: itemsLoading } = useQuery({
+    queryKey: ['admin-bakery-items'],
+    queryFn: async () => {
+      console.log('Fetching bakery items for admin...');
+      const { data, error } = await supabase
+        .from('bakery_items')
+        .select('*')
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching bakery items:', error);
+        throw error;
+      }
+      
+      return data || [];
     }
-  };
+  });
 
-  const loadOrders = () => {
-    const savedOrders = localStorage.getItem('bakeryOrders');
-    if (savedOrders) {
-      setOrders(JSON.parse(savedOrders));
+  // Fetch orders from Supabase
+  const { data: orders = [], isLoading: ordersLoading } = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: async () => {
+      console.log('Fetching orders for admin...');
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+      }
+      
+      return data || [];
     }
-  };
+  });
+
+  // Add item mutation
+  const addItemMutation = useMutation({
+    mutationFn: async (itemData: any) => {
+      console.log('Adding new bakery item:', itemData);
+      const { data, error } = await supabase
+        .from('bakery_items')
+        .insert([itemData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error adding bakery item:', error);
+        throw error;
+      }
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bakery-items'] });
+      queryClient.invalidateQueries({ queryKey: ['bakery-items'] });
+      toast({
+        title: "Item Added",
+        description: "New bakery item has been added successfully!",
+      });
+      setNewItem({
+        name: '',
+        price: '',
+        description: '',
+        image: '',
+        category: 'Cakes'
+      });
+      setShowAddForm(false);
+    },
+    onError: (error) => {
+      console.error('Error adding item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add bakery item. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Edit item mutation
+  const editItemMutation = useMutation({
+    mutationFn: async (item: BakeryItem) => {
+      console.log('Updating bakery item:', item);
+      const { data, error } = await supabase
+        .from('bakery_items')
+        .update({
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          image: item.image,
+          category: item.category,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', item.id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating bakery item:', error);
+        throw error;
+      }
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bakery-items'] });
+      queryClient.invalidateQueries({ queryKey: ['bakery-items'] });
+      toast({
+        title: "Item Updated",
+        description: "Bakery item has been updated successfully!",
+      });
+      setEditingItem(null);
+    },
+    onError: (error) => {
+      console.error('Error updating item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update bakery item. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete item mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: async (id: string) => {
+      console.log('Deleting bakery item:', id);
+      const { error } = await supabase
+        .from('bakery_items')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting bakery item:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bakery-items'] });
+      queryClient.invalidateQueries({ queryKey: ['bakery-items'] });
+      toast({
+        title: "Item Deleted",
+        description: "Bakery item has been deleted.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete bakery item. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleLogout = () => {
     localStorage.removeItem('adminLoggedIn');
@@ -94,8 +233,7 @@ const AdminDashboard = () => {
       return;
     }
 
-    const item: BakeryItem = {
-      id: Date.now().toString(),
+    const itemData = {
       name: newItem.name,
       price: parseFloat(newItem.price),
       description: newItem.description,
@@ -103,52 +241,18 @@ const AdminDashboard = () => {
       category: newItem.category
     };
 
-    const updatedItems = [...items, item];
-    setItems(updatedItems);
-    localStorage.setItem('bakeryItems', JSON.stringify(updatedItems));
-
-    setNewItem({
-      name: '',
-      price: '',
-      description: '',
-      image: '',
-      category: 'Cakes'
-    });
-    setShowAddForm(false);
-
-    toast({
-      title: "Item Added",
-      description: "New bakery item has been added successfully!",
-    });
+    addItemMutation.mutate(itemData);
   };
 
   const handleEditItem = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!editingItem) return;
-
-    const updatedItems = items.map(item => 
-      item.id === editingItem.id ? editingItem : item
-    );
-    setItems(updatedItems);
-    localStorage.setItem('bakeryItems', JSON.stringify(updatedItems));
-    setEditingItem(null);
-
-    toast({
-      title: "Item Updated",
-      description: "Bakery item has been updated successfully!",
-    });
+    editItemMutation.mutate(editingItem);
   };
 
   const handleDeleteItem = (id: string) => {
-    const updatedItems = items.filter(item => item.id !== id);
-    setItems(updatedItems);
-    localStorage.setItem('bakeryItems', JSON.stringify(updatedItems));
-
-    toast({
-      title: "Item Deleted",
-      description: "Bakery item has been deleted.",
-    });
+    deleteItemMutation.mutate(id);
   };
 
   return (
@@ -261,8 +365,12 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                        Add Item
+                      <Button 
+                        type="submit" 
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={addItemMutation.isPending}
+                      >
+                        {addItemMutation.isPending ? 'Adding...' : 'Add Item'}
                       </Button>
                       <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
                         Cancel
@@ -274,43 +382,52 @@ const AdminDashboard = () => {
             )}
 
             {/* Items List */}
-            <div className="grid gap-4">
-              {items.map((item) => (
-                <Card key={item.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <img 
-                        src={item.image} 
-                        alt={item.name}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">{item.name}</h3>
-                        <p className="text-sm text-gray-600">{item.description}</p>
-                        <p className="font-bold text-pink-600">${item.price}</p>
+            {itemsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Loading items...</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {items.map((item) => (
+                  <Card key={item.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src={item.image} 
+                          alt={item.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800">{item.name}</h3>
+                          <p className="text-sm text-gray-600">{item.description}</p>
+                          <p className="font-bold text-pink-600">${item.price}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingItem(item)}
+                            disabled={editItemMutation.isPending}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="text-red-600 border-red-300 hover:bg-red-50"
+                            disabled={deleteItemMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setEditingItem(item)}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="text-red-600 border-red-300 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             {/* Edit Item Modal */}
             {editingItem && (
@@ -384,8 +501,12 @@ const AdminDashboard = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                          Save Changes
+                        <Button 
+                          type="submit" 
+                          className="bg-green-600 hover:bg-green-700"
+                          disabled={editItemMutation.isPending}
+                        >
+                          {editItemMutation.isPending ? 'Saving...' : 'Save Changes'}
                         </Button>
                         <Button type="button" variant="outline" onClick={() => setEditingItem(null)}>
                           Cancel
@@ -402,7 +523,12 @@ const AdminDashboard = () => {
           <TabsContent value="orders" className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-800">Order History</h2>
             
-            {orders.length === 0 ? (
+            {ordersLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Loading orders...</p>
+              </div>
+            ) : orders.length === 0 ? (
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
                 <CardContent className="p-8 text-center">
                   <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -412,17 +538,17 @@ const AdminDashboard = () => {
             ) : (
               <div className="space-y-4">
                 {orders.map((order) => (
-                  <Card key={order.orderId} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                  <Card key={order.id} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="font-semibold text-gray-800">Order #{order.orderId}</h3>
+                          <h3 className="font-semibold text-gray-800">Order #{order.order_id}</h3>
                           <p className="text-sm text-gray-600">
-                            {new Date(order.orderDate).toLocaleDateString()} at {new Date(order.orderDate).toLocaleTimeString()}
+                            {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}
                           </p>
                         </div>
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
-                          ${order.total}
+                          ${order.total_amount}
                         </span>
                       </div>
                       
@@ -430,7 +556,7 @@ const AdminDashboard = () => {
                         <div>
                           <h4 className="font-medium text-gray-800 mb-2">Order Details</h4>
                           <p className="text-sm text-gray-600">
-                            <strong>Item:</strong> {order.item}<br />
+                            <strong>Item:</strong> {order.item_name}<br />
                             <strong>Quantity:</strong> {order.quantity}
                           </p>
                         </div>
@@ -438,14 +564,14 @@ const AdminDashboard = () => {
                         <div>
                           <h4 className="font-medium text-gray-800 mb-2">Customer Information</h4>
                           <p className="text-sm text-gray-600">
-                            <strong>Name:</strong> {order.customer.name}<br />
-                            <strong>Email:</strong> {order.customer.email}<br />
-                            <strong>Phone:</strong> {order.customer.phone}<br />
-                            <strong>Address:</strong> {order.customer.address}
-                            {order.customer.notes && (
+                            <strong>Name:</strong> {order.customer_name}<br />
+                            <strong>Email:</strong> {order.customer_email}<br />
+                            <strong>Phone:</strong> {order.customer_phone}<br />
+                            <strong>Address:</strong> {order.customer_address}
+                            {order.special_notes && (
                               <>
                                 <br />
-                                <strong>Notes:</strong> {order.customer.notes}
+                                <strong>Notes:</strong> {order.special_notes}
                               </>
                             )}
                           </p>

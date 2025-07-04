@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 interface BakeryItem {
   id: string;
@@ -22,7 +24,6 @@ const OrderForm = () => {
   const { itemId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [item, setItem] = useState<BakeryItem | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -32,14 +33,77 @@ const OrderForm = () => {
     notes: ''
   });
 
-  useEffect(() => {
-    const savedItems = localStorage.getItem('bakeryItems');
-    if (savedItems) {
-      const items: BakeryItem[] = JSON.parse(savedItems);
-      const foundItem = items.find(i => i.id === itemId);
-      setItem(foundItem || null);
+  // Fetch specific bakery item from Supabase
+  const { data: item, isLoading, error } = useQuery({
+    queryKey: ['bakery-item', itemId],
+    queryFn: async () => {
+      if (!itemId) return null;
+      
+      console.log('Fetching bakery item:', itemId);
+      const { data, error } = await supabase
+        .from('bakery_items')
+        .select('*')
+        .eq('id', itemId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching bakery item:', error);
+        throw error;
+      }
+      
+      return data;
+    },
+    enabled: !!itemId
+  });
+
+  // Create order mutation
+  const createOrderMutation = useMutation({
+    mutationFn: async (orderData: any) => {
+      console.log('Creating order:', orderData);
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating order:', error);
+        throw error;
+      }
+      
+      return data;
+    },
+    onSuccess: (data) => {
+      console.log('Order created successfully:', data);
+      toast({
+        title: "Order Placed Successfully! 🎉",
+        description: `Your order for ${quantity}x ${item?.name} has been received. We'll contact you soon!`,
+      });
+
+      // Reset form
+      setCustomerInfo({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        notes: ''
+      });
+      setQuantity(1);
+
+      // Navigate back to homepage after 2 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    },
+    onError: (error) => {
+      console.error('Error creating order:', error);
+      toast({
+        title: "Order Failed",
+        description: "There was an error placing your order. Please try again.",
+        variant: "destructive"
+      });
     }
-  }, [itemId]);
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,45 +121,33 @@ const OrderForm = () => {
     }
 
     const orderData = {
-      item: item.name,
+      order_id: `ORDER-${Date.now()}`,
+      item_id: item.id,
+      item_name: item.name,
       quantity,
-      price: item.price,
-      total: (item.price * quantity).toFixed(2),
-      customer: customerInfo,
-      orderDate: new Date().toISOString(),
-      orderId: `ORDER-${Date.now()}`
+      total_amount: item.price * quantity,
+      customer_name: customerInfo.name,
+      customer_email: customerInfo.email,
+      customer_phone: customerInfo.phone,
+      customer_address: customerInfo.address,
+      special_notes: customerInfo.notes || null
     };
 
-    // Save order to localStorage (for admin to view)
-    const existingOrders = JSON.parse(localStorage.getItem('bakeryOrders') || '[]');
-    existingOrders.push(orderData);
-    localStorage.setItem('bakeryOrders', JSON.stringify(existingOrders));
-
-    // Simulate email sending (in a real app, this would be handled by a backend)
-    console.log('Order details for email:', orderData);
-    
-    toast({
-      title: "Order Placed Successfully! 🎉",
-      description: `Your order for ${quantity}x ${item.name} has been received. We'll contact you soon!`,
-    });
-
-    // Reset form
-    setCustomerInfo({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      notes: ''
-    });
-    setQuantity(1);
-
-    // Navigate back to homepage after 2 seconds
-    setTimeout(() => {
-      navigate('/');
-    }, 2000);
+    createOrderMutation.mutate(orderData);
   };
 
-  if (!item) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading item details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !item) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
         <Card className="p-6">
@@ -232,8 +284,12 @@ const OrderForm = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-semibold py-3 rounded-full text-lg"
+                  disabled={createOrderMutation.isPending}
                 >
-                  Place Order - ${(item.price * quantity).toFixed(2)}
+                  {createOrderMutation.isPending 
+                    ? 'Placing Order...' 
+                    : `Place Order - $${(item.price * quantity).toFixed(2)}`
+                  }
                 </Button>
               </form>
             </CardContent>

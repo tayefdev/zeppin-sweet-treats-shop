@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Cake } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface BakeryItem {
   id: string;
@@ -15,76 +17,58 @@ interface BakeryItem {
 }
 
 const Index = () => {
-  const [items, setItems] = useState<BakeryItem[]>([]);
   const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
-  useEffect(() => {
-    // Load items from localStorage or use default items
-    const savedItems = localStorage.getItem('bakeryItems');
-    if (savedItems) {
-      setItems(JSON.parse(savedItems));
-    } else {
-      const defaultItems: BakeryItem[] = [
-        {
-          id: '1',
-          name: 'Strawberry Dream Cake',
-          price: 25.99,
-          description: 'Fluffy vanilla sponge layered with fresh strawberries and whipped cream',
-          image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop&crop=center',
-          category: 'Cakes'
-        },
-        {
-          id: '2',
-          name: 'Chocolate Chip Cookies',
-          price: 12.99,
-          description: 'Warm, gooey cookies packed with premium chocolate chips (dozen)',
-          image: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=300&fit=crop&crop=center',
-          category: 'Cookies'
-        },
-        {
-          id: '3',
-          name: 'Blueberry Muffins',
-          price: 8.99,
-          description: 'Fresh-baked muffins bursting with juicy blueberries (pack of 6)',
-          image: 'https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=400&h=300&fit=crop&crop=center',
-          category: 'Pastries'
-        },
-        {
-          id: '4',
-          name: 'Rainbow Cupcakes',
-          price: 18.99,
-          description: 'Colorful vanilla cupcakes with rainbow buttercream frosting (set of 12)',
-          image: 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=400&h=300&fit=crop&crop=center',
-          category: 'Cupcakes'
-        },
-        {
-          id: '5',
-          name: 'Apple Cinnamon Danish',
-          price: 6.99,
-          description: 'Flaky pastry filled with spiced apples and topped with glaze',
-          image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop&crop=center',
-          category: 'Pastries'
-        },
-        {
-          id: '6',
-          name: 'Red Velvet Cake',
-          price: 28.99,
-          description: 'Rich red velvet layers with cream cheese frosting',
-          image: 'https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=400&h=300&fit=crop&crop=center',
-          category: 'Cakes'
-        }
-      ];
-      setItems(defaultItems);
-      localStorage.setItem('bakeryItems', JSON.stringify(defaultItems));
+  // Fetch bakery items from Supabase
+  const { data: items = [], isLoading, error } = useQuery({
+    queryKey: ['bakery-items'],
+    queryFn: async () => {
+      console.log('Fetching bakery items from Supabase...');
+      const { data, error } = await supabase
+        .from('bakery_items')
+        .select('*')
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching bakery items:', error);
+        throw error;
+      }
+      
+      console.log('Fetched bakery items:', data);
+      return data || [];
     }
-  }, []);
+  });
 
   const categories = ['All', ...new Set(items.map(item => item.category))];
-  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const filteredItems = selectedCategory === 'All' 
     ? items 
     : items.filter(item => item.category === selectedCategory);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading delicious treats...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-red-600">Error loading bakery items. Please try again later.</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
@@ -167,7 +151,7 @@ const Index = () => {
           ))}
         </div>
 
-        {filteredItems.length === 0 && (
+        {filteredItems.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No items found in this category.</p>
           </div>
