@@ -185,7 +185,7 @@ const OrderForm = () => {
             <CardHeader>
               <CardTitle className="text-2xl text-gray-800">{item.name}</CardTitle>
               <p className="text-gray-600">{item.description}</p>
-              <p className="text-2xl font-bold text-pink-600">${item.price}</p>
+              <p className="text-2xl font-bold text-pink-600">৳{item.price}</p>
             </CardHeader>
           </Card>
 
@@ -214,7 +214,7 @@ const OrderForm = () => {
 
                 <div className="bg-pink-50 p-3 rounded-lg">
                   <p className="font-semibold text-gray-800">
-                    Total: ${(item.price * quantity).toFixed(2)}
+                    Total: ৳{(item.price * quantity).toFixed(2)}
                   </p>
                 </div>
 
@@ -250,7 +250,7 @@ const OrderForm = () => {
                     type="tel"
                     value={customerInfo.phone}
                     onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                    placeholder="(555) 123-4567"
+                    placeholder="+880 1234 567890"
                     required
                     className="mt-1"
                   />
@@ -262,7 +262,7 @@ const OrderForm = () => {
                     id="address"
                     value={customerInfo.address}
                     onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
-                    placeholder="123 Main Street, City, State, ZIP"
+                    placeholder="House/Flat No, Road, Area, City, District"
                     required
                     className="mt-1"
                     rows={3}
@@ -288,7 +288,7 @@ const OrderForm = () => {
                 >
                   {createOrderMutation.isPending 
                     ? 'Placing Order...' 
-                    : `Place Order - $${(item.price * quantity).toFixed(2)}`
+                    : `Place Order - ৳${(item.price * quantity).toFixed(2)}`
                   }
                 </Button>
               </form>
