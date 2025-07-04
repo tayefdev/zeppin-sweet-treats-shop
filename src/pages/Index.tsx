@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Cake } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -76,8 +76,12 @@ const Index = () => {
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-pink-400 to-orange-400 p-3 rounded-full">
-              <Cake className="h-8 w-8 text-white" />
+            <div className="bg-gradient-to-r from-pink-400 to-orange-400 p-2 rounded-full">
+              <img 
+                src="/lovable-uploads/af402a3c-5fb9-4f2c-b8ed-d90572b9c444.png" 
+                alt="Zeppin Bakery Logo" 
+                className="h-12 w-12 object-contain"
+              />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-orange-600 bg-clip-text text-transparent">
               Zeppin Bakery
