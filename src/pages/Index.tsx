@@ -75,22 +75,13 @@ const Index = () => {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-pink-400 to-orange-400 p-3 rounded-full">
-                <Cake className="h-8 w-8 text-white" />
-              </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-orange-600 bg-clip-text text-transparent">
-                Zeppin Bakery
-              </h1>
+          <div className="flex items-center space-x-3">
+            <div className="bg-gradient-to-r from-pink-400 to-orange-400 p-3 rounded-full">
+              <Cake className="h-8 w-8 text-white" />
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/admin')}
-              className="text-gray-600 border-gray-300 hover:bg-gray-50"
-            >
-              Admin
-            </Button>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-orange-600 bg-clip-text text-transparent">
+              Zeppin Bakery
+            </h1>
           </div>
           <p className="text-gray-600 mt-2 text-lg">Freshly baked with love, every day! 🧁</p>
         </div>

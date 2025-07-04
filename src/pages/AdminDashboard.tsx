@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Plus, Edit2, Trash2, ShoppingCart } from 'lucide-react';
+import { LogOut, Plus, Edit2, Trash2, ShoppingCart, Bell } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -42,6 +41,8 @@ const AdminDashboard = () => {
   const queryClient = useQueryClient();
   const [editingItem, setEditingItem] = useState<BakeryItem | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [hasViewedOrders, setHasViewedOrders] = useState(false);
+  const [lastOrderCount, setLastOrderCount] = useState(0);
   const [newItem, setNewItem] = useState({
     name: '',
     price: '',
@@ -56,6 +57,12 @@ const AdminDashboard = () => {
     if (isAdminLoggedIn !== 'true') {
       navigate('/admin');
       return;
+    }
+
+    // Get last viewed order count from localStorage
+    const savedOrderCount = localStorage.getItem('lastViewedOrderCount');
+    if (savedOrderCount) {
+      setLastOrderCount(parseInt(savedOrderCount));
     }
   }, [navigate]);
 
@@ -96,6 +103,16 @@ const AdminDashboard = () => {
       return data || [];
     }
   });
+
+  // Calculate new orders notification
+  const newOrdersCount = orders.length > lastOrderCount ? orders.length - lastOrderCount : 0;
+
+  // Handle when user views orders tab
+  const handleOrdersTabClick = () => {
+    setHasViewedOrders(true);
+    setLastOrderCount(orders.length);
+    localStorage.setItem('lastViewedOrderCount', orders.length.toString());
+  };
 
   // Add item mutation
   const addItemMutation = useMutation({
@@ -277,7 +294,14 @@ const AdminDashboard = () => {
         <Tabs defaultValue="items" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="items">Manage Items</TabsTrigger>
-            <TabsTrigger value="orders">Order History</TabsTrigger>
+            <TabsTrigger value="orders" onClick={handleOrdersTabClick} className="relative">
+              Order History
+              {newOrdersCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {newOrdersCount}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           {/* Items Management */}

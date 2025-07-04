@@ -9,7 +9,6 @@ import { ArrowLeft, Lock } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -25,7 +24,7 @@ const AdminLogin = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (username === 'admin' && password === '123') {
+    if (password === '123') {
       localStorage.setItem('adminLoggedIn', 'true');
       toast({
         title: "Login Successful",
@@ -35,7 +34,7 @@ const AdminLogin = () => {
     } else {
       toast({
         title: "Login Failed",
-        description: "Invalid username or password.",
+        description: "Invalid password.",
         variant: "destructive"
       });
     }
@@ -64,18 +63,6 @@ const AdminLogin = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username"
-                  required
-                  className="mt-1"
-                />
-              </div>
-              
-              <div>
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
@@ -97,9 +84,7 @@ const AdminLogin = () => {
             </form>
 
             <div className="mt-6 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-              <p><strong>Demo Credentials:</strong></p>
-              <p>Username: admin</p>
-              <p>Password: 123</p>
+              <p><strong>Demo Password:</strong> 123</p>
             </div>
           </CardContent>
         </Card>
