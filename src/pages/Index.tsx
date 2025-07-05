@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Home, Phone, Info } from 'lucide-react';
+import { ShoppingCart, Home, Phone, Info, MapPin, Heart } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -48,10 +48,10 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+      <div className="min-h-screen bg-rose-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Loading delicious treats...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-rose-400 mx-auto mb-4"></div>
+          <p className="text-lg text-rose-600">Loading delicious treats...</p>
         </div>
       </div>
     );
@@ -59,7 +59,7 @@ const Index = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+      <div className="min-h-screen bg-rose-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg text-red-600">Error loading bakery items. Please try again later.</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
@@ -71,134 +71,258 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-b from-rose-100 via-rose-50 to-amber-50">
+      {/* Top Banner */}
+      <div className="bg-rose-300 text-center py-2 text-sm text-rose-800">
+        Check out our great new range in desserts
+      </div>
+
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-6">
+      <header className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
+            {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-pink-400 to-orange-400 p-2 rounded-full">
-                <img 
-                  src="/lovable-uploads/af402a3c-5fb9-4f2c-b8ed-d90572b9c444.png" 
-                  alt="Zeppin Bakery Logo" 
-                  className="h-12 w-12 object-contain"
-                />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-orange-600 bg-clip-text text-transparent">
-                  Zeppin Bakery
-                </h1>
-                <p className="text-gray-600 text-lg">Freshly baked with love, every day! 🧁</p>
-              </div>
+              <img 
+                src="/lovable-uploads/af402a3c-5fb9-4f2c-b8ed-d90572b9c444.png" 
+                alt="Zeppin Bakery Logo" 
+                className="h-12 w-12 object-contain"
+              />
             </div>
 
-            {/* Navigation Menu */}
-            <nav className="hidden md:flex items-center space-x-6">
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
               <Button
                 variant="ghost"
-                className="flex items-center space-x-2 text-gray-700 hover:text-pink-600 hover:bg-pink-50"
+                className="text-gray-700 hover:text-rose-600 font-medium"
                 onClick={() => navigate('/')}
               >
-                <Home className="h-5 w-5" />
-                <span>Home</span>
+                HOME
               </Button>
               <Button
                 variant="ghost"
-                className="flex items-center space-x-2 text-gray-700 hover:text-pink-600 hover:bg-pink-50"
+                className="text-gray-700 hover:text-rose-600 font-medium"
               >
-                <Info className="h-5 w-5" />
-                <span>About</span>
+                MENU
               </Button>
               <Button
                 variant="ghost"
-                className="flex items-center space-x-2 text-gray-700 hover:text-pink-600 hover:bg-pink-50"
+                className="text-gray-700 hover:text-rose-600 font-medium"
               >
-                <Phone className="h-5 w-5" />
-                <span>Contact</span>
+                CAKES
               </Button>
             </nav>
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              className="md:hidden text-gray-700 hover:text-pink-600"
-              size="sm"
-            >
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </Button>
+            {/* Brand Name */}
+            <div className="text-center">
+              <h1 className="text-3xl font-serif text-gray-800 italic">Patisserie</h1>
+            </div>
+
+            {/* Right Side Icons */}
+            <div className="flex items-center space-x-4">
+              <MapPin className="h-5 w-5 text-gray-600" />
+              <Heart className="h-5 w-5 text-gray-600" />
+              <ShoppingCart className="h-5 w-5 text-gray-600" />
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-8 justify-center">
-          {categories.map(category => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              onClick={() => setSelectedCategory(category)}
-              className={`rounded-full ${
-                selectedCategory === category 
-                  ? "bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600" 
-                  : "border-pink-200 text-pink-600 hover:bg-pink-50"
-              }`}
-            >
-              {category}
-            </Button>
-          ))}
+      {/* Hero Section */}
+      <section className="relative py-20 px-4 text-center bg-gradient-to-r from-rose-200 via-rose-100 to-amber-100">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-6xl font-serif text-gray-800 mb-6 italic leading-tight">
+            Delight in<br />every bite!
+          </h2>
+          <p className="text-gray-600 mb-8 text-lg max-w-2xl mx-auto">
+            Discover fresh and artisanal desserts & sweets
+          </p>
+          <Button 
+            className="bg-rose-400 hover:bg-rose-500 text-white px-8 py-3 rounded-full text-lg font-medium"
+            onClick={() => {
+              const productsSection = document.getElementById('products');
+              productsSection?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            ORDER NOW
+          </Button>
         </div>
+      </section>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105 border-0 shadow-md bg-white/80 backdrop-blur-sm">
-              <div className="aspect-square overflow-hidden">
+      {/* Signature Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h3 className="text-4xl font-serif text-center text-gray-800 mb-12 italic">Signature</h3>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Custom Cakes */}
+            <div className="text-center">
+              <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
                 <img 
-                  src={item.image} 
-                  alt={item.name}
-                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                  src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  alt="Custom Cakes"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xl text-gray-800 flex items-center justify-between">
-                  {item.name}
-                  <span className="text-lg font-bold text-pink-600">
-                    ৳{item.price}
-                  </span>
-                </CardTitle>
-                <CardDescription className="text-gray-600 text-sm leading-relaxed">
-                  {item.description}
-                </CardDescription>
-              </CardHeader>
-              <CardFooter>
-                <Button 
-                  className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-semibold py-2 rounded-full"
-                  onClick={() => navigate(`/order/${item.id}`)}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Order Now
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+              <h4 className="text-xl font-serif text-gray-800 mb-2">Custom Cakes</h4>
+              <p className="text-gray-600 text-sm">Tailored for your special occasion</p>
+            </div>
 
-        {filteredItems.length === 0 && !isLoading && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No items found in this category.</p>
+            {/* Macarons */}
+            <div className="text-center">
+              <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
+                <img 
+                  src="https://images.unsplash.com/photo-1569864358642-9d1684040f43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  alt="Macarons"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h4 className="text-xl font-serif text-gray-800 mb-2">Macarons</h4>
+              <p className="text-gray-600 text-sm">Hand crafted delicate macarons</p>
+            </div>
+
+            {/* Cupcake Collections */}
+            <div className="text-center">
+              <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
+                <img 
+                  src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  alt="Cupcake Collections"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h4 className="text-xl font-serif text-gray-800 mb-2">Cupcake Collections</h4>
+              <p className="text-gray-600 text-sm">Gourmet cupcakes for every craving</p>
+            </div>
           </div>
-        )}
-      </main>
+        </div>
+      </section>
+
+      {/* Products Section */}
+      <section id="products" className="py-16 bg-rose-50">
+        <div className="container mx-auto px-4">
+          {/* Category Filter */}
+          <div className="flex flex-wrap gap-2 mb-12 justify-center">
+            {categories.map(category => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category)}
+                className={`rounded-full px-6 py-2 ${
+                  selectedCategory === category 
+                    ? "bg-rose-400 text-white hover:bg-rose-500" 
+                    : "border-rose-300 text-rose-700 hover:bg-rose-100"
+                }`}
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {filteredItems.map((item) => (
+              <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
+                <div className="aspect-square overflow-hidden">
+                  <img 
+                    src={item.image} 
+                    alt={item.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-xl text-gray-800 flex items-center justify-between font-serif">
+                    {item.name}
+                    <span className="text-lg font-bold text-rose-600">
+                      ৳{item.price}
+                    </span>
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 text-sm leading-relaxed">
+                    {item.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button 
+                    className="w-full bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
+                    onClick={() => navigate(`/order/${item.id}`)}
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Order Now
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+
+          {filteredItems.length === 0 && !isLoading && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">No items found in this category.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Holiday Collection Section */}
+      <section className="py-16 bg-gradient-to-r from-rose-200 to-amber-200">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <div className="flex-1">
+              <img 
+                src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                alt="Holiday Cake"
+                className="w-full max-w-md mx-auto"
+              />
+            </div>
+            <div className="flex-1 text-center">
+              <h3 className="text-4xl font-serif text-gray-800 mb-6 italic">Holiday Collection</h3>
+              <div className="bg-white p-6 rounded-lg shadow-lg inline-block mb-6">
+                <span className="text-3xl font-bold text-rose-600">20% OFF</span>
+              </div>
+              <div>
+                <Button className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-full text-lg font-medium">
+                  ORDER TODAY
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="bg-white/80 backdrop-blur-sm mt-16 py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-gray-600">© 2024 Zeppin Bakery. Made with ❤️ and lots of flour!</p>
-          <p className="text-gray-500 text-sm mt-2">Fresh ingredients • Daily baking • Sweet memories</p>
+      <footer className="bg-white py-8 border-t">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center space-x-8 mb-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
+                <span className="text-rose-600 font-bold">N</span>
+              </div>
+              <p className="text-xs text-gray-600">NEWSLETTER</p>
+              <p className="text-xs text-gray-500">Monthly updates</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
+                <span className="text-rose-600 font-bold">S</span>
+              </div>
+              <p className="text-xs text-gray-600">SIGN UP</p>
+              <p className="text-xs text-gray-500">Get discounts</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
+                <span className="text-rose-600 font-bold">M</span>
+              </div>
+              <p className="text-xs text-gray-600">MARKETING</p>
+              <p className="text-xs text-gray-500">Campaigns & events</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
+                <span className="text-rose-600 font-bold">A</span>
+              </div>
+              <p className="text-xs text-gray-600">ALSO VIEW</p>
+              <p className="text-xs text-gray-500">More of our treats</p>
+            </div>
+          </div>
+          <div className="text-center text-gray-500 text-sm">
+            © 2024 Zeppin Bakery. Made with ❤️ and lots of flour!
+          </div>
         </div>
       </footer>
     </div>
