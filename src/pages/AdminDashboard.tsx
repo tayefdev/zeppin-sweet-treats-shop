@@ -34,6 +34,7 @@ interface Order {
   customer_address: string;
   special_notes?: string;
   created_at: string;
+  item_id?: string;
 }
 
 const AdminDashboard = () => {
@@ -86,14 +87,19 @@ const AdminDashboard = () => {
     }
   });
 
-  // Fetch orders from Supabase
+  // Fetch orders with item details from Supabase
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
       console.log('Fetching orders for admin...');
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          bakery_items (
+            image
+          )
+        `)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -338,7 +344,7 @@ const AdminDashboard = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="price">Price ($)</Label>
+                        <Label htmlFor="price">Price (৳)</Label>
                         <Input
                           id="price"
                           type="number"
@@ -421,7 +427,7 @@ const AdminDashboard = () => {
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-800">{item.name}</h3>
                           <p className="text-sm text-gray-600">{item.description}</p>
-                          <p className="font-bold text-pink-600">${item.price}</p>
+                          <p className="font-bold text-pink-600">৳{item.price}</p>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -469,7 +475,7 @@ const AdminDashboard = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="edit-price">Price ($)</Label>
+                          <Label htmlFor="edit-price">Price (৳)</Label>
                           <Input
                             id="edit-price"
                             type="number"
@@ -564,20 +570,34 @@ const AdminDashboard = () => {
                           </p>
                         </div>
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
-                          ${order.total_amount}
+                          ৳{order.total_amount}
                         </span>
                       </div>
                       
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-medium text-gray-800 mb-2">Order Details</h4>
-                          <p className="text-sm text-gray-600">
-                            <strong>Item:</strong> {order.item_name}<br />
-                            <strong>Quantity:</strong> {order.quantity}
-                          </p>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {/* Item Image */}
+                        <div className="flex items-center">
+                          {order.bakery_items?.image ? (
+                            <img 
+                              src={order.bakery_items.image} 
+                              alt={order.item_name}
+                              className="w-16 h-16 object-cover rounded-lg mr-3"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gray-200 rounded-lg mr-3 flex items-center justify-center">
+                              <ShoppingCart className="h-6 w-6 text-gray-400" />
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="font-medium text-gray-800">Order Details</h4>
+                            <p className="text-sm text-gray-600">
+                              <strong>Item:</strong> {order.item_name}<br />
+                              <strong>Quantity:</strong> {order.quantity}
+                            </p>
+                          </div>
                         </div>
                         
-                        <div>
+                        <div className="md:col-span-2">
                           <h4 className="font-medium text-gray-800 mb-2">Customer Information</h4>
                           <p className="text-sm text-gray-600">
                             <strong>Name:</strong> {order.customer_name}<br />

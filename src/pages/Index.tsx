@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Home, Phone, Info, MapPin, Heart } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useCart } from '@/contexts/CartContext';
+import CartModal from '@/components/CartModal';
+import { useToast } from "@/hooks/use-toast";
 
 interface BakeryItem {
   id: string;
@@ -18,6 +22,9 @@ interface BakeryItem {
 const Index = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const { addToCart, getTotalItems } = useCart();
+  const { toast } = useToast();
 
   // Fetch bakery items from Supabase
   const { data: items = [], isLoading, error } = useQuery({
@@ -44,6 +51,34 @@ const Index = () => {
   const filteredItems = selectedCategory === 'All' 
     ? items 
     : items.filter(item => item.category === selectedCategory);
+
+  const handleAddToCart = (item: BakeryItem) => {
+    addToCart({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: item.image
+    });
+    toast({
+      title: "Added to Cart",
+      description: `${item.name} has been added to your cart!`,
+    });
+  };
+
+  const handleLocationClick = () => {
+    const address = "HATIR POOL, DHAKA";
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    window.open(mapsUrl, '_blank');
+  };
+
+  const handlePhoneClick = () => {
+    window.open('tel:01304073314', '_self');
+  };
+
+  const scrollToMenu = () => {
+    const productsSection = document.getElementById('products');
+    productsSection?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   if (isLoading) {
     return (
@@ -72,8 +107,20 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-100 via-rose-50 to-amber-50">
       {/* Top Banner */}
-      <div className="bg-rose-300 text-center py-2 text-sm text-rose-800">
-        Check out our great new range in desserts
+      <div className="bg-rose-300 text-center py-2 text-sm text-rose-800 flex items-center justify-center gap-4">
+        <div>Check out our great new range in desserts</div>
+        <div className="flex items-center gap-2">
+          <Phone className="h-4 w-4" />
+          <button onClick={handlePhoneClick} className="hover:underline">
+            01304073314
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <MapPin className="h-4 w-4" />
+          <button onClick={handleLocationClick} className="hover:underline">
+            HATIR POOL, DHAKA
+          </button>
+        </div>
       </div>
 
       {/* Header */}
@@ -101,12 +148,14 @@ const Index = () => {
               <Button
                 variant="ghost"
                 className="text-gray-700 hover:text-rose-600 font-medium"
+                onClick={scrollToMenu}
               >
                 MENU
               </Button>
               <Button
                 variant="ghost"
                 className="text-gray-700 hover:text-rose-600 font-medium"
+                onClick={scrollToMenu}
               >
                 CAKES
               </Button>
@@ -114,9 +163,21 @@ const Index = () => {
 
             {/* Right Side Icons */}
             <div className="flex items-center space-x-4">
-              <MapPin className="h-5 w-5 text-gray-600" />
+              <button onClick={handleLocationClick} className="hover:text-rose-600 transition-colors">
+                <MapPin className="h-5 w-5 text-gray-600 hover:text-rose-600" />
+              </button>
               <Heart className="h-5 w-5 text-gray-600" />
-              <ShoppingCart className="h-5 w-5 text-gray-600" />
+              <button 
+                onClick={() => setIsCartModalOpen(true)}
+                className="relative hover:text-rose-600 transition-colors"
+              >
+                <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-rose-600" />
+                {getTotalItems() > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {getTotalItems()}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -133,10 +194,7 @@ const Index = () => {
           </p>
           <Button 
             className="bg-rose-400 hover:bg-rose-500 text-white px-8 py-3 rounded-full text-lg font-medium"
-            onClick={() => {
-              const productsSection = document.getElementById('products');
-              productsSection?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={scrollToMenu}
           >
             ORDER NOW
           </Button>
@@ -234,13 +292,20 @@ const Index = () => {
                     {item.description}
                   </CardDescription>
                 </CardHeader>
-                <CardFooter>
+                <CardFooter className="space-y-2">
                   <Button 
                     className="w-full bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
                     onClick={() => navigate(`/order/${item.id}`)}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     Order Now
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full border-rose-300 text-rose-700 hover:bg-rose-50"
+                    onClick={() => handleAddToCart(item)}
+                  >
+                    Add to Cart
                   </Button>
                 </CardFooter>
               </Card>
@@ -272,7 +337,10 @@ const Index = () => {
                 <span className="text-3xl font-bold text-rose-600">20% OFF</span>
               </div>
               <div>
-                <Button className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-full text-lg font-medium">
+                <Button 
+                  className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-full text-lg font-medium"
+                  onClick={scrollToMenu}
+                >
                   ORDER TODAY
                 </Button>
               </div>
@@ -314,11 +382,28 @@ const Index = () => {
               <p className="text-xs text-gray-500">More of our treats</p>
             </div>
           </div>
-          <div className="text-center text-gray-500 text-sm">
-            © 2024 Zeppin Bakery. Made with ❤️ and lots of flour!
+          <div className="text-center text-gray-500 text-sm space-y-2">
+            <div className="flex justify-center items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <button onClick={handlePhoneClick} className="hover:underline">
+                  01304073314
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <button onClick={handleLocationClick} className="hover:underline">
+                  HATIR POOL, DHAKA
+                </button>
+              </div>
+            </div>
+            <div>© 2024 Zeppin Bakery. Made with ❤️ and lots of flour!</div>
           </div>
         </div>
       </footer>
+
+      {/* Cart Modal */}
+      <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
     </div>
   );
 };
