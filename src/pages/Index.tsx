@@ -113,9 +113,9 @@ const Index = () => {
               </Button>
             </nav>
 
-            {/* Brand Name */}
+            {/* Brand Name - Removed */}
             <div className="text-center">
-              <h1 className="text-3xl font-serif text-gray-800 italic">Patisserie</h1>
+              {/* Patisserie text removed */}
             </div>
 
             {/* Right Side Icons */}
@@ -168,17 +168,17 @@ const Index = () => {
               <p className="text-gray-600 text-sm">Tailored for your special occasion</p>
             </div>
 
-            {/* Macarons */}
+            {/* Brownies */}
             <div className="text-center">
               <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
                 <img 
-                  src="https://images.unsplash.com/photo-1569864358642-9d1684040f43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                  alt="Macarons"
+                  src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  alt="Brownies"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h4 className="text-xl font-serif text-gray-800 mb-2">Macarons</h4>
-              <p className="text-gray-600 text-sm">Hand crafted delicate macarons</p>
+              <h4 className="text-xl font-serif text-gray-800 mb-2">Brownies</h4>
+              <p className="text-gray-600 text-sm">Rich and fudgy chocolate brownies</p>
             </div>
 
             {/* Cupcake Collections */}
