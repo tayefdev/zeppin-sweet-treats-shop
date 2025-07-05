@@ -11,6 +11,7 @@ import { LogOut, Plus, Edit2, Trash2, ShoppingCart, Bell } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ImageUpload from "@/components/ImageUpload";
 
 interface BakeryItem {
   id: string;
@@ -377,16 +378,11 @@ const AdminDashboard = () => {
                       />
                     </div>
 
-                    <div>
-                      <Label htmlFor="image">Image URL</Label>
-                      <Input
-                        id="image"
-                        value={newItem.image}
-                        onChange={(e) => setNewItem({...newItem, image: e.target.value})}
-                        placeholder="https://example.com/image.jpg"
-                        required
-                      />
-                    </div>
+                    <ImageUpload
+                      value={newItem.image}
+                      onChange={(url) => setNewItem({...newItem, image: url})}
+                      label="Item Image"
+                    />
 
                     <div className="flex gap-2">
                       <Button 
@@ -514,15 +510,11 @@ const AdminDashboard = () => {
                         />
                       </div>
 
-                      <div>
-                        <Label htmlFor="edit-image">Image URL</Label>
-                        <Input
-                          id="edit-image"
-                          value={editingItem.image}
-                          onChange={(e) => setEditingItem({...editingItem, image: e.target.value})}
-                          required
-                        />
-                      </div>
+                      <ImageUpload
+                        value={editingItem.image}
+                        onChange={(url) => setEditingItem({...editingItem, image: url})}
+                        label="Item Image"
+                      />
 
                       <div className="flex gap-2">
                         <Button 
