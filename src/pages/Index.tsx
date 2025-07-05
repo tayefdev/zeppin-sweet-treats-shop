@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,8 +89,8 @@ const Index = () => {
               />
             </div>
 
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
+            {/* Centered Navigation */}
+            <nav className="flex items-center space-x-8">
               <Button
                 variant="ghost"
                 className="text-gray-700 hover:text-rose-600 font-medium"
@@ -112,11 +111,6 @@ const Index = () => {
                 CAKES
               </Button>
             </nav>
-
-            {/* Brand Name - Removed */}
-            <div className="text-center">
-              {/* Patisserie text removed */}
-            </div>
 
             {/* Right Side Icons */}
             <div className="flex items-center space-x-4">
