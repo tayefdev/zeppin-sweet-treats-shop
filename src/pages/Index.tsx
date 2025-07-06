@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -252,7 +251,7 @@ const Index = () => {
             <div className="text-center">
               <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
                 <img 
-                  src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  src="/lovable-uploads/40b5c73f-9655-4801-ab66-33d8e09eebb5.png" 
                   alt="Brownies"
                   className="w-full h-full object-cover"
                 />
@@ -265,7 +264,7 @@ const Index = () => {
             <div className="text-center">
               <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
                 <img 
-                  src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  src="/lovable-uploads/54b7ffd4-f04c-42e2-9fe6-e610d1ab5050.png" 
                   alt="Cupcake Collections"
                   className="w-full h-full object-cover"
                 />
@@ -321,19 +320,21 @@ const Index = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardFooter className="space-y-2">
-                  <Button 
-                    className="w-full bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
-                    onClick={() => navigate(`/order/${item.id}`)}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Order Now
-                  </Button>
-                  <Button 
-                    className="w-full bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
-                    onClick={() => handleAddToCart(item)}
-                  >
-                    Add to Cart
-                  </Button>
+                  <div className="flex gap-2 w-full">
+                    <Button 
+                      className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
+                      onClick={() => navigate(`/order/${item.id}`)}
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Order Now
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
+                      onClick={() => handleAddToCart(item)}
+                    >
+                      Add to Cart
+                    </Button>
+                  </div>
                 </CardFooter>
               </Card>
             ))}
