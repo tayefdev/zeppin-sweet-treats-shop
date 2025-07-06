@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +22,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const { addToCart, getTotalItems } = useCart();
   const { toast } = useToast();
 
@@ -73,6 +73,10 @@ const Index = () => {
 
   const handlePhoneClick = () => {
     window.open('tel:01304073314', '_self');
+  };
+
+  const handleHomeClick = () => {
+    window.location.reload();
   };
 
   const scrollToMenu = () => {
@@ -141,7 +145,7 @@ const Index = () => {
               <Button
                 variant="ghost"
                 className="text-gray-700 hover:text-rose-600 font-medium"
-                onClick={() => navigate('/')}
+                onClick={handleHomeClick}
               >
                 HOME
               </Button>
@@ -155,9 +159,9 @@ const Index = () => {
               <Button
                 variant="ghost"
                 className="text-gray-700 hover:text-rose-600 font-medium"
-                onClick={scrollToMenu}
+                onClick={() => setShowAbout(!showAbout)}
               >
-                CAKES
+                ABOUT US
               </Button>
             </nav>
 
@@ -182,6 +186,29 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* About Us Section */}
+      {showAbout && (
+        <section className="bg-white border-b py-8">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl font-serif text-gray-800 mb-4 italic">About Us</h2>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Welcome to Zeppin Bakery – your cozy neighborhood spot for fresh, handmade treats. 
+                We bake daily with love, using only quality ingredients to bring you everything from 
+                soft breads to custom cakes.
+              </p>
+              <Button
+                variant="ghost"
+                onClick={() => setShowAbout(false)}
+                className="mt-4 text-rose-600 hover:text-rose-700"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Hero Section */}
       <section className="relative py-20 px-4 text-center bg-gradient-to-r from-rose-200 via-rose-100 to-amber-100">
@@ -301,8 +328,7 @@ const Index = () => {
                     Order Now
                   </Button>
                   <Button 
-                    variant="outline"
-                    className="w-full border-rose-300 text-rose-700 hover:bg-rose-50"
+                    className="w-full bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
                     onClick={() => handleAddToCart(item)}
                   >
                     Add to Cart

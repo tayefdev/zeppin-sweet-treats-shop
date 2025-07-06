@@ -23,7 +23,7 @@ const OrderForm = () => {
   const { itemId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -149,6 +149,16 @@ const OrderForm = () => {
     
     if (!item) return;
 
+    // Validate quantity first
+    if (quantity <= 0) {
+      toast({
+        title: "Invalid Quantity",
+        description: "Please enter a quantity greater than 0.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Validate form
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
       toast({
@@ -239,23 +249,29 @@ const OrderForm = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="quantity">Quantity</Label>
+                  <Label htmlFor="quantity">Quantity *</Label>
                   <Input
                     id="quantity"
                     type="number"
-                    min="1"
+                    min="0"
                     max="50"
                     value={quantity}
-                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
                     className="mt-1"
+                    required
                   />
+                  {quantity <= 0 && (
+                    <p className="text-red-500 text-sm mt-1">Please enter a quantity greater than 0</p>
+                  )}
                 </div>
 
-                <div className="bg-pink-50 p-3 rounded-lg">
-                  <p className="font-semibold text-gray-800">
-                    Total: ৳{(item.price * quantity).toFixed(2)}
-                  </p>
-                </div>
+                {quantity > 0 && (
+                  <div className="bg-pink-50 p-3 rounded-lg">
+                    <p className="font-semibold text-gray-800">
+                      Total: ৳{(item.price * quantity).toFixed(2)}
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <Label htmlFor="name">Full Name *</Label>
@@ -323,11 +339,13 @@ const OrderForm = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-semibold py-3 rounded-full text-lg"
-                  disabled={createOrderMutation.isPending}
+                  disabled={createOrderMutation.isPending || quantity <= 0}
                 >
                   {createOrderMutation.isPending 
                     ? 'Placing Order...' 
-                    : `Place Order - ৳${(item.price * quantity).toFixed(2)}`
+                    : quantity > 0 
+                      ? `Place Order - ৳${(item.price * quantity).toFixed(2)}`
+                      : 'Enter Quantity to Continue'
                   }
                 </Button>
               </form>
