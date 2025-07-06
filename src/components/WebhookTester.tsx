@@ -31,7 +31,7 @@ const WebhookTester = () => {
 
       console.log('Testing webhook with data:', testData);
 
-      const response = await fetch('https://hook.eu2.make.com/zslt1cygtanaa2soxp8jpcryokve80ij', {
+      const response = await fetch('https://hook.eu2.make.com/jdbihbqrt5iuifizc3uxq4p4xb5v3m4k', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ const WebhookTester = () => {
           <div>
             <Label>Webhook URL</Label>
             <Input 
-              value="https://hook.eu2.make.com/zslt1cygtanaa2soxp8jpcryokve80ij"
+              value="https://hook.eu2.make.com/jdbihbqrt5iuifizc3uxq4p4xb5v3m4k"
               readOnly
               className="bg-gray-50"
             />

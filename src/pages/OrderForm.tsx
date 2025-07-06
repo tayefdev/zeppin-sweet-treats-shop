@@ -74,7 +74,7 @@ const OrderForm = () => {
         currency: 'BDT'
       };
 
-      const response = await fetch('https://hook.eu2.make.com/zslt1cygtanaa2soxp8jpcryokve80ij', {
+      const response = await fetch('https://hook.eu2.make.com/jdbihbqrt5iuifizc3uxq4p4xb5v3m4k', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
