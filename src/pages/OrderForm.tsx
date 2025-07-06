@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -56,10 +55,47 @@ const OrderForm = () => {
     enabled: !!itemId
   });
 
+  // Function to trigger Make.com webhook
+  const triggerWebhook = async (orderData: any) => {
+    try {
+      console.log('Triggering Make.com webhook with order data:', orderData);
+      
+      const webhookData = {
+        order_id: orderData.order_id,
+        item_name: orderData.item_name,
+        quantity: orderData.quantity,
+        total_amount: orderData.total_amount,
+        customer_name: orderData.customer_name,
+        customer_email: orderData.customer_email,
+        customer_phone: orderData.customer_phone,
+        customer_address: orderData.customer_address,
+        special_notes: orderData.special_notes,
+        order_date: new Date().toISOString(),
+        currency: 'BDT'
+      };
+
+      const response = await fetch('https://hook.eu2.make.com/zslt1cygtanaa2soxp8jpcryokve80ij', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'no-cors',
+        body: JSON.stringify(webhookData),
+      });
+
+      console.log('Webhook triggered successfully');
+    } catch (error) {
+      console.error('Error triggering webhook:', error);
+      // Don't fail the order if webhook fails
+    }
+  };
+
   // Create order mutation
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
       console.log('Creating order:', orderData);
+      
+      // First create the order in Supabase
       const { data, error } = await supabase
         .from('orders')
         .insert([orderData])
@@ -70,6 +106,9 @@ const OrderForm = () => {
         console.error('Error creating order:', error);
         throw error;
       }
+      
+      // Then trigger the Make.com webhook
+      await triggerWebhook(orderData);
       
       return data;
     },

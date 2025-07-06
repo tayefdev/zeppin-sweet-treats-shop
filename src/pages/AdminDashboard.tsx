@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ImageUpload from "@/components/ImageUpload";
+import WebhookTester from '@/components/WebhookTester';
 
 interface BakeryItem {
   id: string;
@@ -282,21 +283,18 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-            <p className="text-gray-600">Manage your bakery items and orders</p>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
           <Button 
-            variant="outline" 
-            onClick={handleLogout}
-            className="text-red-600 border-red-300 hover:bg-red-50"
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="text-pink-600 border-pink-600 hover:bg-pink-50"
           >
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
+            Back to Website
           </Button>
         </div>
+
+        <WebhookTester />
 
         <Tabs defaultValue="items" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
