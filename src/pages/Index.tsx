@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -134,9 +135,9 @@ const Index = () => {
             {/* Logo */}
             <div className="flex items-center space-x-3">
               <img 
-                src="/lovable-uploads/af402a3c-5fb9-4f2c-b8ed-d90572b9c444.png" 
+                src="/lovable-uploads/6f30b366-0e3c-498f-a5ab-c9b2a19bac7a.png" 
                 alt="Zeppin Bakery Logo" 
-                className="h-12 w-12 object-contain"
+                className="h-20 w-20 object-contain"
               />
             </div>
 
@@ -234,17 +235,17 @@ const Index = () => {
           <h3 className="text-4xl font-serif text-center text-gray-800 mb-12 italic">Signature</h3>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Custom Cakes */}
+            {/* Cakes */}
             <div className="text-center">
               <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
                 <img 
-                  src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                  alt="Custom Cakes"
+                  src="/lovable-uploads/7a8a873c-4e49-44ee-9063-a6667dc9c301.png" 
+                  alt="Cakes"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h4 className="text-xl font-serif text-gray-800 mb-2">Custom Cakes</h4>
-              <p className="text-gray-600 text-sm">Tailored for your special occasion</p>
+              <h4 className="text-xl font-serif text-gray-800 mb-2">Cakes</h4>
+              <p className="text-gray-600 text-sm">Beautiful and delicious cakes for every occasion</p>
             </div>
 
             {/* Brownies */}
