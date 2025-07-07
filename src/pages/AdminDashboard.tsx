@@ -54,7 +54,7 @@ const AdminDashboard = () => {
     price: '',
     description: '',
     image: '',
-    category: 'Cakes',
+    category: 'cakes',
     is_on_sale: false,
     sale_percentage: ''
   });
@@ -156,7 +156,7 @@ const AdminDashboard = () => {
         price: '',
         description: '',
         image: '',
-        category: 'Cakes',
+        category: 'cakes',
         is_on_sale: false,
         sale_percentage: ''
       });
@@ -382,11 +382,11 @@ const AdminDashboard = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Cakes">Cakes</SelectItem>
-                          <SelectItem value="Cookies">Cookies</SelectItem>
-                          <SelectItem value="Pastries">Pastries</SelectItem>
-                          <SelectItem value="Cupcakes">Cupcakes</SelectItem>
-                          <SelectItem value="Breads">Breads</SelectItem>
+                          <SelectItem value="cakes">Cakes</SelectItem>
+                          <SelectItem value="cupcakes">Cupcakes</SelectItem>
+                          <SelectItem value="swissrolls">Swiss Rolls</SelectItem>
+                          <SelectItem value="cookies">Cookies</SelectItem>
+                          <SelectItem value="desserts">Desserts</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -561,11 +561,11 @@ const AdminDashboard = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Cakes">Cakes</SelectItem>
-                            <SelectItem value="Cookies">Cookies</SelectItem>
-                            <SelectItem value="Pastries">Pastries</SelectItem>
-                            <SelectItem value="Cupcakes">Cupcakes</SelectItem>
-                            <SelectItem value="Breads">Breads</SelectItem>
+                            <SelectItem value="cakes">Cakes</SelectItem>
+                            <SelectItem value="cupcakes">Cupcakes</SelectItem>
+                            <SelectItem value="swissrolls">Swiss Rolls</SelectItem>
+                            <SelectItem value="cookies">Cookies</SelectItem>
+                            <SelectItem value="desserts">Desserts</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
