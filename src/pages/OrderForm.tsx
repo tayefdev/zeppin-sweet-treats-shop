@@ -17,6 +17,8 @@ interface BakeryItem {
   description: string;
   image: string;
   category: string;
+  is_on_sale?: boolean;
+  sale_percentage?: number;
 }
 
 const OrderForm = () => {
@@ -169,12 +171,20 @@ const OrderForm = () => {
       return;
     }
 
+    // Calculate final price with sale or 7.7 sale discount
+    let finalPrice = item.price;
+    if (item.is_on_sale && item.sale_percentage) {
+      finalPrice = item.price * (1 - item.sale_percentage / 100);
+    } else {
+      finalPrice = item.price * 0.93; // 7% off for 7.7 sale
+    }
+
     const orderData = {
       order_id: `ORDER-${Date.now()}`,
       item_id: item.id,
       item_name: item.name,
       quantity,
-      total_amount: item.price * quantity,
+      total_amount: finalPrice * quantity,
       customer_name: customerInfo.name,
       customer_email: customerInfo.email,
       customer_phone: customerInfo.phone,
@@ -184,6 +194,10 @@ const OrderForm = () => {
 
     createOrderMutation.mutate(orderData);
   };
+
+  const finalPrice = item && item.is_on_sale && item.sale_percentage 
+    ? item.price * (1 - item.sale_percentage / 100)
+    : item ? item.price * 0.93 : 0; // 7% off for 7.7 sale
 
   if (isLoading) {
     return (
@@ -224,17 +238,36 @@ const OrderForm = () => {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Item Details */}
           <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-            <div className="aspect-square overflow-hidden rounded-t-lg">
+            <div className="aspect-square overflow-hidden rounded-t-lg relative">
+              {item?.is_on_sale && item.sale_percentage && (
+                <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold z-10">
+                  {item.sale_percentage}% OFF
+                </div>
+              )}
               <img 
-                src={item.image} 
-                alt={item.name}
+                src={item?.image} 
+                alt={item?.name}
                 className="w-full h-full object-cover"
               />
             </div>
             <CardHeader>
-              <CardTitle className="text-2xl text-gray-800">{item.name}</CardTitle>
-              <p className="text-gray-600">{item.description}</p>
-              <p className="text-2xl font-bold text-pink-600">৳{item.price}</p>
+              <CardTitle className="text-2xl text-gray-800">{item?.name}</CardTitle>
+              <p className="text-gray-600">{item?.description}</p>
+              <div className="flex flex-col gap-1">
+                {item?.is_on_sale && item.sale_percentage ? (
+                  <>
+                    <span className="text-lg text-gray-500 line-through">৳{item.price}</span>
+                    <span className="text-2xl font-bold text-red-600">৳{finalPrice.toFixed(2)}</span>
+                    <span className="text-sm text-red-600 font-medium">{item.sale_percentage}% OFF - Special Sale!</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg text-gray-500 line-through">৳{item?.price}</span>
+                    <span className="text-2xl font-bold text-rose-600">৳{finalPrice.toFixed(2)}</span>
+                    <span className="text-sm text-green-600 font-medium">7.7 Sale - 7% OFF!</span>
+                  </>
+                )}
+              </div>
             </CardHeader>
           </Card>
 
@@ -268,8 +301,17 @@ const OrderForm = () => {
                 {quantity > 0 && (
                   <div className="bg-pink-50 p-3 rounded-lg">
                     <p className="font-semibold text-gray-800">
-                      Total: ৳{(item.price * quantity).toFixed(2)}
+                      Total: ৳{(finalPrice * quantity).toFixed(2)}
                     </p>
+                    {item?.is_on_sale && item.sale_percentage ? (
+                      <p className="text-sm text-red-600">
+                        You save: ৳{((item.price - finalPrice) * quantity).toFixed(2)} with {item.sale_percentage}% off!
+                      </p>
+                    ) : (
+                      <p className="text-sm text-green-600">
+                        You save: ৳{((item?.price || 0) * 0.07 * quantity).toFixed(2)} with 7.7 Sale!
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -344,7 +386,7 @@ const OrderForm = () => {
                   {createOrderMutation.isPending 
                     ? 'Placing Order...' 
                     : quantity > 0 
-                      ? `Place Order - ৳${(item.price * quantity).toFixed(2)}`
+                      ? `Place Order - ৳${(finalPrice * quantity).toFixed(2)}`
                       : 'Enter Quantity to Continue'
                   }
                 </Button>

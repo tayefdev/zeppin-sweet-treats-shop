@@ -16,6 +16,8 @@ interface BakeryItem {
   description: string;
   image: string;
   category: string;
+  is_on_sale?: boolean;
+  sale_percentage?: number;
 }
 
 const Index = () => {
@@ -53,10 +55,14 @@ const Index = () => {
     : items.filter(item => item.category === selectedCategory);
 
   const handleAddToCart = (item: BakeryItem) => {
+    const finalPrice = item.is_on_sale && item.sale_percentage 
+      ? item.price * (1 - item.sale_percentage / 100)
+      : item.price;
+    
     addToCart({
       id: item.id,
       name: item.name,
-      price: item.price,
+      price: finalPrice,
       image: item.image
     });
     toast({
@@ -299,45 +305,68 @@ const Index = () => {
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {filteredItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white">
-                <div className="aspect-square overflow-hidden">
-                  <img 
-                    src={item.image} 
-                    alt={item.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xl text-gray-800 flex items-center justify-between font-serif">
-                    {item.name}
-                    <span className="text-lg font-bold text-rose-600">
-                      ৳{item.price}
-                    </span>
-                  </CardTitle>
-                  <CardDescription className="text-gray-600 text-sm leading-relaxed">
-                    {item.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="space-y-2">
-                  <div className="flex gap-2 w-full">
-                    <Button 
-                      className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
-                      onClick={() => navigate(`/order/${item.id}`)}
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Order Now
-                    </Button>
-                    <Button 
-                      className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
-                      onClick={() => handleAddToCart(item)}
-                    >
-                      Add to Cart
-                    </Button>
+            {filteredItems.map((item) => {
+              const finalPrice = item.is_on_sale && item.sale_percentage 
+                ? item.price * (1 - item.sale_percentage / 100)
+                : item.price;
+              const discountedPrice = item.price * 0.93; // 7% off for 7.7 sale
+              
+              return (
+                <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white relative">
+                  {item.is_on_sale && item.sale_percentage && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold z-10">
+                      {item.sale_percentage}% OFF
+                    </div>
+                  )}
+                  <div className="aspect-square overflow-hidden">
+                    <img 
+                      src={item.image} 
+                      alt={item.name}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
-                </CardFooter>
-              </Card>
-            ))}
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-xl text-gray-800 flex items-center justify-between font-serif">
+                      {item.name}
+                      <div className="flex flex-col items-end">
+                        {item.is_on_sale && item.sale_percentage ? (
+                          <>
+                            <span className="text-sm text-gray-500 line-through">৳{item.price}</span>
+                            <span className="text-lg font-bold text-red-600">৳{finalPrice.toFixed(2)}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-sm text-gray-500 line-through">৳{item.price}</span>
+                            <span className="text-lg font-bold text-rose-600">৳{discountedPrice.toFixed(2)}</span>
+                            <span className="text-xs text-green-600">7.7 Sale - 7% OFF</span>
+                          </>
+                        )}
+                      </div>
+                    </CardTitle>
+                    <CardDescription className="text-gray-600 text-sm leading-relaxed">
+                      {item.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="space-y-2">
+                    <div className="flex gap-2 w-full">
+                      <Button 
+                        className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
+                        onClick={() => navigate(`/order/${item.id}`)}
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Order Now
+                      </Button>
+                      <Button 
+                        className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
+                        onClick={() => handleAddToCart(item)}
+                      >
+                        Add to Cart
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              )
+            })}
           </div>
 
           {filteredItems.length === 0 && !isLoading && (
@@ -360,9 +389,10 @@ const Index = () => {
               />
             </div>
             <div className="flex-1 text-center">
-              <h3 className="text-4xl font-serif text-gray-800 mb-6 italic">Holiday Collection</h3>
+              <h3 className="text-4xl font-serif text-gray-800 mb-6 italic">7.7 Sale</h3>
               <div className="bg-white p-6 rounded-lg shadow-lg inline-block mb-6">
-                <span className="text-3xl font-bold text-rose-600">20% OFF</span>
+                <span className="text-3xl font-bold text-rose-600">7% OFF</span>
+                <p className="text-sm text-gray-600 mt-2">On all purchases!</p>
               </div>
               <div>
                 <Button 

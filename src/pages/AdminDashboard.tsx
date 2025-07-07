@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Plus, Edit2, Trash2, ShoppingCart, Bell } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
+import { LogOut, Plus, Edit2, Trash2, ShoppingCart, Bell, Tag } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,6 +22,8 @@ interface BakeryItem {
   description: string;
   image: string;
   category: string;
+  is_on_sale?: boolean;
+  sale_percentage?: number;
 }
 
 interface Order {
@@ -51,7 +54,9 @@ const AdminDashboard = () => {
     price: '',
     description: '',
     image: '',
-    category: 'Cakes'
+    category: 'Cakes',
+    is_on_sale: false,
+    sale_percentage: ''
   });
 
   useEffect(() => {
@@ -151,7 +156,9 @@ const AdminDashboard = () => {
         price: '',
         description: '',
         image: '',
-        category: 'Cakes'
+        category: 'Cakes',
+        is_on_sale: false,
+        sale_percentage: ''
       });
       setShowAddForm(false);
     },
@@ -177,6 +184,8 @@ const AdminDashboard = () => {
           description: item.description,
           image: item.image,
           category: item.category,
+          is_on_sale: item.is_on_sale,
+          sale_percentage: item.sale_percentage,
           updated_at: new Date().toISOString()
         })
         .eq('id', item.id)
@@ -258,12 +267,23 @@ const AdminDashboard = () => {
       return;
     }
 
+    if (newItem.is_on_sale && (!newItem.sale_percentage || parseFloat(newItem.sale_percentage) <= 0)) {
+      toast({
+        title: "Invalid Sale Percentage",
+        description: "Please enter a valid sale percentage.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const itemData = {
       name: newItem.name,
       price: parseFloat(newItem.price),
       description: newItem.description,
       image: newItem.image,
-      category: newItem.category
+      category: newItem.category,
+      is_on_sale: newItem.is_on_sale,
+      sale_percentage: newItem.is_on_sale ? parseFloat(newItem.sale_percentage) : null
     };
 
     addItemMutation.mutate(itemData);
@@ -388,6 +408,37 @@ const AdminDashboard = () => {
                       label="Item Image"
                     />
 
+                    {/* Sale Section */}
+                    <div className="border-t pt-4">
+                      <div className="flex items-center space-x-2 mb-4">
+                        <Switch
+                          id="sale-toggle"
+                          checked={newItem.is_on_sale}
+                          onCheckedChange={(checked) => setNewItem({...newItem, is_on_sale: checked})}
+                        />
+                        <Label htmlFor="sale-toggle" className="flex items-center gap-2">
+                          <Tag className="h-4 w-4" />
+                          Put Item on Sale
+                        </Label>
+                      </div>
+                      
+                      {newItem.is_on_sale && (
+                        <div>
+                          <Label htmlFor="sale-percentage">Sale Percentage (%)</Label>
+                          <Input
+                            id="sale-percentage"
+                            type="number"
+                            min="1"
+                            max="99"
+                            value={newItem.sale_percentage}
+                            onChange={(e) => setNewItem({...newItem, sale_percentage: e.target.value})}
+                            placeholder="e.g., 25"
+                            required={newItem.is_on_sale}
+                          />
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex gap-2">
                       <Button 
                         type="submit" 
@@ -423,9 +474,24 @@ const AdminDashboard = () => {
                           className="w-16 h-16 object-cover rounded-lg"
                         />
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-800">{item.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-gray-800">{item.name}</h3>
+                            {item.is_on_sale && (
+                              <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                <Tag className="h-3 w-3" />
+                                {item.sale_percentage}% OFF
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600">{item.description}</p>
-                          <p className="font-bold text-pink-600">৳{item.price}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-pink-600">৳{item.price}</p>
+                            {item.is_on_sale && item.sale_percentage && (
+                              <p className="text-sm text-green-600">
+                                Sale Price: ৳{(item.price * (1 - item.sale_percentage / 100)).toFixed(2)}
+                              </p>
+                            )}
+                          </div>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -456,7 +522,7 @@ const AdminDashboard = () => {
             {/* Edit Item Modal */}
             {editingItem && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                <Card className="w-full max-w-2xl bg-white">
+                <Card className="w-full max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
                   <CardHeader>
                     <CardTitle>Edit Item</CardTitle>
                   </CardHeader>
@@ -519,6 +585,37 @@ const AdminDashboard = () => {
                         onChange={(url) => setEditingItem({...editingItem, image: url})}
                         label="Item Image"
                       />
+
+                      {/* Sale Section */}
+                      <div className="border-t pt-4">
+                        <div className="flex items-center space-x-2 mb-4">
+                          <Switch
+                            id="edit-sale-toggle"
+                            checked={editingItem.is_on_sale || false}
+                            onCheckedChange={(checked) => setEditingItem({...editingItem, is_on_sale: checked})}
+                          />
+                          <Label htmlFor="edit-sale-toggle" className="flex items-center gap-2">
+                            <Tag className="h-4 w-4" />
+                            Put Item on Sale
+                          </Label>
+                        </div>
+                        
+                        {editingItem.is_on_sale && (
+                          <div>
+                            <Label htmlFor="edit-sale-percentage">Sale Percentage (%)</Label>
+                            <Input
+                              id="edit-sale-percentage"
+                              type="number"
+                              min="1"
+                              max="99"
+                              value={editingItem.sale_percentage || ''}
+                              onChange={(e) => setEditingItem({...editingItem, sale_percentage: parseFloat(e.target.value)})}
+                              placeholder="e.g., 25"
+                              required={editingItem.is_on_sale}
+                            />
+                          </div>
+                        )}
+                      </div>
 
                       <div className="flex gap-2">
                         <Button 
