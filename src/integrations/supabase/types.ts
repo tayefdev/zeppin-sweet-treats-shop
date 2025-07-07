@@ -21,8 +21,10 @@ export type Database = {
           description: string | null
           id: string
           image: string
+          is_on_sale: boolean | null
           name: string
           price: number
+          sale_percentage: number | null
           updated_at: string
         }
         Insert: {
@@ -31,8 +33,10 @@ export type Database = {
           description?: string | null
           id?: string
           image: string
+          is_on_sale?: boolean | null
           name: string
           price: number
+          sale_percentage?: number | null
           updated_at?: string
         }
         Update: {
@@ -41,8 +45,10 @@ export type Database = {
           description?: string | null
           id?: string
           image?: string
+          is_on_sale?: boolean | null
           name?: string
           price?: number
+          sale_percentage?: number | null
           updated_at?: string
         }
         Relationships: []
