@@ -24,7 +24,7 @@ const AdminLogin = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password === '123') {
+    if (password === 'Asm121203') {
       localStorage.setItem('adminLoggedIn', 'true');
       toast({
         title: "Login Successful",
@@ -84,7 +84,7 @@ const AdminLogin = () => {
             </form>
 
             <div className="mt-6 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-              <p><strong>Demo Password:</strong> 123</p>
+              <p><strong>Demo Password:</strong> Asm121203</p>
             </div>
           </CardContent>
         </Card>
