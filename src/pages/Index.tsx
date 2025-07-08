@@ -412,18 +412,24 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-center space-x-8 mb-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
-                <span className="text-rose-600 font-bold">N</span>
-              </div>
-              <p className="text-xs text-gray-600">NEWSLETTER</p>
-              <p className="text-xs text-gray-500">Monthly updates</p>
+              <button
+                onClick={() => window.open('https://www.facebook.com/zeppin.bakery.bd', '_blank')}
+                className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto hover:bg-rose-200 transition-colors"
+              >
+                <span className="text-rose-600 font-bold">F</span>
+              </button>
+              <p className="text-xs text-gray-600">FACEBOOK</p>
+              <p className="text-xs text-gray-500">Follow us</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
-                <span className="text-rose-600 font-bold">S</span>
-              </div>
-              <p className="text-xs text-gray-600">SIGN UP</p>
-              <p className="text-xs text-gray-500">Get discounts</p>
+              <button
+                onClick={() => window.open('https://www.instagram.com/zeppin.cakes/', '_blank')}
+                className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto hover:bg-rose-200 transition-colors"
+              >
+                <span className="text-rose-600 font-bold">I</span>
+              </button>
+              <p className="text-xs text-gray-600">INSTAGRAM</p>
+              <p className="text-xs text-gray-500">Follow us</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">

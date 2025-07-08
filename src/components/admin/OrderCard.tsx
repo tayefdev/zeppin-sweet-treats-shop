@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { ShoppingCart } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, Trash2 } from 'lucide-react';
 
 interface Order {
   id: string;
@@ -22,9 +23,11 @@ interface Order {
 
 interface OrderCardProps {
   order: Order;
+  onDelete: (orderId: string) => void;
+  isDeleting: boolean;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
+const OrderCard: React.FC<OrderCardProps> = ({ order, onDelete, isDeleting }) => {
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
       <CardContent className="p-4">
@@ -35,9 +38,20 @@ const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
               {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}
             </p>
           </div>
-          <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
-            ৳{order.total_amount}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
+              ৳{order.total_amount}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDelete(order.id)}
+              className="text-red-600 border-red-300 hover:bg-red-50"
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
         <div className="grid md:grid-cols-3 gap-4">

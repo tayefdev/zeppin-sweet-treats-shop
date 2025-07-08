@@ -80,7 +80,7 @@ const AdminDashboard = () => {
   });
 
   // Fetch orders with item details from Supabase
-  const { data: orders = [], isLoading: ordersLoading } = useQuery({
+  const { data: orders = [], isLoading: ordersLoading, refetch: refetchOrders } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
       console.log('Fetching orders for admin...');
@@ -147,7 +147,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">
-            <OrdersHistory orders={orders} isLoading={ordersLoading} />
+            <OrdersHistory orders={orders} isLoading={ordersLoading} onOrderDeleted={refetchOrders} />
           </TabsContent>
         </Tabs>
       </div>

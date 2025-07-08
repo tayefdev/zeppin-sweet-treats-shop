@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart } from 'lucide-react';
 import OrderCard from './OrderCard';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Order {
   id: string;
@@ -24,9 +26,40 @@ interface Order {
 interface OrdersHistoryProps {
   orders: Order[];
   isLoading: boolean;
+  onOrderDeleted: () => void;
 }
 
-const OrdersHistory: React.FC<OrdersHistoryProps> = ({ orders, isLoading }) => {
+const OrdersHistory: React.FC<OrdersHistoryProps> = ({ orders, isLoading, onOrderDeleted }) => {
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleDeleteOrder = async (orderId: string) => {
+    setDeletingOrderId(orderId);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Order Deleted",
+        description: "The order has been successfully deleted.",
+      });
+      
+      onOrderDeleted();
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingOrderId(null);
+    }
+  };
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-800">Order History</h2>
@@ -46,7 +79,12 @@ const OrdersHistory: React.FC<OrdersHistoryProps> = ({ orders, isLoading }) => {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard 
+              key={order.id} 
+              order={order} 
+              onDelete={handleDeleteOrder}
+              isDeleting={deletingOrderId === order.id}
+            />
           ))}
         </div>
       )}
