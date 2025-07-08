@@ -240,22 +240,34 @@ const Index = () => {
           <h3 className="text-4xl font-serif text-center text-gray-800 mb-12 italic">Signature</h3>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Cakes */}
+            {/* Custom Cakes */}
             <div className="text-center">
-              <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
+              <div 
+                className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
+                onClick={() => {
+                  setSelectedCategory('Cakes');
+                  scrollToMenu();
+                }}
+              >
                 <img 
                   src="/lovable-uploads/7a8a873c-4e49-44ee-9063-a6667dc9c301.png" 
-                  alt="Cakes"
+                  alt="Custom Cakes"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h4 className="text-xl font-serif text-gray-800 mb-2">Cakes</h4>
+              <h4 className="text-xl font-serif text-gray-800 mb-2">Custom Cake</h4>
               <p className="text-gray-600 text-sm">Beautiful and delicious cakes for every occasion</p>
             </div>
 
             {/* Brownies */}
             <div className="text-center">
-              <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
+              <div 
+                className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
+                onClick={() => {
+                  setSelectedCategory('Dessert');
+                  scrollToMenu();
+                }}
+              >
                 <img 
                   src="/lovable-uploads/40b5c73f-9655-4801-ab66-33d8e09eebb5.png" 
                   alt="Brownies"
@@ -268,7 +280,13 @@ const Index = () => {
 
             {/* Cupcake Collections */}
             <div className="text-center">
-              <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100">
+              <div 
+                className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
+                onClick={() => {
+                  setSelectedCategory('Cupcake');
+                  scrollToMenu();
+                }}
+              >
                 <img 
                   src="/lovable-uploads/54b7ffd4-f04c-42e2-9fe6-e610d1ab5050.png" 
                   alt="Cupcake Collections"
