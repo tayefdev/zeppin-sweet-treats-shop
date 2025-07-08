@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +21,56 @@ interface BakeryItem {
   sale_percentage?: number;
 }
 
+// Lazy loading component for images
+const LazyImage = ({ src, alt, className }: { src: string, alt: string, className: string }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  return (
+    <div className={`${className} relative`}>
+      {!isLoaded && !hasError && (
+        <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg"></div>
+      )}
+      <img 
+        src={src}
+        alt={alt}
+        className={`${className} transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setHasError(true)}
+        loading="lazy"
+      />
+      {hasError && (
+        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center rounded-lg">
+          <span className="text-gray-400 text-sm">Image not available</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Skeleton loader component
+const ProductSkeleton = () => (
+  <Card className="overflow-hidden shadow-lg bg-white">
+    <div className="aspect-square bg-gray-200 animate-pulse"></div>
+    <CardHeader className="pb-3">
+      <div className="flex justify-between items-start">
+        <div className="h-6 bg-gray-200 animate-pulse rounded w-3/4"></div>
+        <div className="h-6 bg-gray-200 animate-pulse rounded w-16"></div>
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-200 animate-pulse rounded w-full"></div>
+        <div className="h-4 bg-gray-200 animate-pulse rounded w-2/3"></div>
+      </div>
+    </CardHeader>
+    <CardFooter>
+      <div className="flex gap-2 w-full">
+        <div className="h-10 bg-gray-200 animate-pulse rounded-full flex-1"></div>
+        <div className="h-10 bg-gray-200 animate-pulse rounded-full flex-1"></div>
+      </div>
+    </CardFooter>
+  </Card>
+);
+
 const Index = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -28,7 +79,7 @@ const Index = () => {
   const { addToCart, getTotalItems } = useCart();
   const { toast } = useToast();
 
-  // Fetch bakery items from Supabase
+  // Optimized fetch with better caching
   const { data: items = [], isLoading, error } = useQuery({
     queryKey: ['bakery-items'],
     queryFn: async () => {
@@ -45,7 +96,10 @@ const Index = () => {
       
       console.log('Fetched bakery items:', data);
       return data || [];
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
   });
 
   const categories = ['All', ...new Set(items.map(item => item.category))];
@@ -90,17 +144,6 @@ const Index = () => {
     productsSection?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-rose-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-rose-400 mx-auto mb-4"></div>
-          <p className="text-lg text-rose-600">Loading delicious treats...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="min-h-screen bg-rose-50 flex items-center justify-center">
@@ -139,7 +182,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <img 
+              <LazyImage 
                 src="/lovable-uploads/6f30b366-0e3c-498f-a5ab-c9b2a19bac7a.png" 
                 alt="Zeppin Bakery Logo" 
                 className="h-20 w-20 object-contain"
@@ -248,7 +291,7 @@ const Index = () => {
                   scrollToMenu();
                 }}
               >
-                <img 
+                <LazyImage 
                   src="/lovable-uploads/7a8a873c-4e49-44ee-9063-a6667dc9c301.png" 
                   alt="Custom Cakes"
                   className="w-full h-full object-cover"
@@ -267,7 +310,7 @@ const Index = () => {
                   scrollToMenu();
                 }}
               >
-                <img 
+                <LazyImage 
                   src="/lovable-uploads/40b5c73f-9655-4801-ab66-33d8e09eebb5.png" 
                   alt="Brownies"
                   className="w-full h-full object-cover"
@@ -286,7 +329,7 @@ const Index = () => {
                   scrollToMenu();
                 }}
               >
-                <img 
+                <LazyImage 
                   src="/lovable-uploads/54b7ffd4-f04c-42e2-9fe6-e610d1ab5050.png" 
                   alt="Cupcake Collections"
                   className="w-full h-full object-cover"
@@ -322,71 +365,78 @@ const Index = () => {
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {filteredItems.map((item) => {
-              const finalPrice = item.is_on_sale && item.sale_percentage 
-                ? item.price * (1 - item.sale_percentage / 100)
-                : item.price;
-              const discountedPrice = item.price * 0.93; // 7% off for 7.7 sale
-              
-              return (
-                <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white relative">
-                  {item.is_on_sale && item.sale_percentage && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold z-10">
-                      {item.sale_percentage}% OFF
-                    </div>
-                  )}
-                  <div className="aspect-square overflow-hidden">
-                    <img 
-                      src={item.image} 
-                      alt={item.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-xl text-gray-800 flex items-center justify-between font-serif">
-                      {item.name}
-                      <div className="flex flex-col items-end">
-                        {item.is_on_sale && item.sale_percentage ? (
-                          <>
-                            <span className="text-sm text-gray-500 line-through">৳{item.price}</span>
-                            <span className="text-lg font-bold text-red-600">৳{finalPrice.toFixed(2)}</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-sm text-gray-500 line-through">৳{item.price}</span>
-                            <span className="text-lg font-bold text-rose-600">৳{discountedPrice.toFixed(2)}</span>
-                            <span className="text-xs text-green-600">7.7 Sale - 7% OFF</span>
-                          </>
-                        )}
+            {isLoading ? (
+              // Show skeleton loaders while loading
+              Array.from({ length: 6 }).map((_, index) => (
+                <ProductSkeleton key={index} />
+              ))
+            ) : (
+              filteredItems.map((item) => {
+                const finalPrice = item.is_on_sale && item.sale_percentage 
+                  ? item.price * (1 - item.sale_percentage / 100)
+                  : item.price;
+                const discountedPrice = item.price * 0.93; // 7% off for 7.7 sale
+                
+                return (
+                  <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white relative">
+                    {item.is_on_sale && item.sale_percentage && (
+                      <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold z-10">
+                        {item.sale_percentage}% OFF
                       </div>
-                    </CardTitle>
-                    <CardDescription className="text-gray-600 text-sm leading-relaxed">
-                      {item.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter className="space-y-2">
-                    <div className="flex gap-2 w-full">
-                      <Button 
-                        className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
-                        onClick={() => navigate(`/order/${item.id}`)}
-                      >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Order Now
-                      </Button>
-                      <Button 
-                        className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
-                        onClick={() => handleAddToCart(item)}
-                      >
-                        Add to Cart
-                      </Button>
+                    )}
+                    <div className="aspect-square overflow-hidden">
+                      <LazyImage 
+                        src={item.image} 
+                        alt={item.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
-                  </CardFooter>
-                </Card>
-              )
-            })}
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-xl text-gray-800 flex items-center justify-between font-serif">
+                        {item.name}
+                        <div className="flex flex-col items-end">
+                          {item.is_on_sale && item.sale_percentage ? (
+                            <>
+                              <span className="text-sm text-gray-500 line-through">৳{item.price}</span>
+                              <span className="text-lg font-bold text-red-600">৳{finalPrice.toFixed(2)}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-sm text-gray-500 line-through">৳{item.price}</span>
+                              <span className="text-lg font-bold text-rose-600">৳{discountedPrice.toFixed(2)}</span>
+                              <span className="text-xs text-green-600">7.7 Sale - 7% OFF</span>
+                            </>
+                          )}
+                        </div>
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 text-sm leading-relaxed">
+                        {item.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardFooter className="space-y-2">
+                      <div className="flex gap-2 w-full">
+                        <Button 
+                          className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
+                          onClick={() => navigate(`/order/${item.id}`)}
+                        >
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          Order Now
+                        </Button>
+                        <Button 
+                          className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
+                          onClick={() => handleAddToCart(item)}
+                        >
+                          Add to Cart
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                )
+              })
+            )}
           </div>
 
-          {filteredItems.length === 0 && !isLoading && (
+          {!isLoading && filteredItems.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No items found in this category.</p>
             </div>
@@ -399,7 +449,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between max-w-6xl mx-auto">
             <div className="flex-1">
-              <img 
+              <LazyImage 
                 src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
                 alt="Holiday Cake"
                 className="w-full max-w-md mx-auto"
