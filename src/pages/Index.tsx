@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Home, Phone, Info, MapPin, Heart } from 'lucide-react';
+import { ShoppingCart, Home, Phone, Info, MapPin, Heart, Facebook, Instagram } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from '@/contexts/CartContext';
@@ -414,9 +414,9 @@ const Index = () => {
             <div className="text-center">
               <button
                 onClick={() => window.open('https://www.facebook.com/zeppin.bakery.bd', '_blank')}
-                className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto hover:bg-rose-200 transition-colors"
+                className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto hover:bg-rose-200 transition-colors hover:scale-105"
               >
-                <span className="text-rose-600 font-bold">F</span>
+                <Facebook className="h-5 w-5 text-rose-600" />
               </button>
               <p className="text-xs text-gray-600">FACEBOOK</p>
               <p className="text-xs text-gray-500">Follow us</p>
@@ -424,9 +424,9 @@ const Index = () => {
             <div className="text-center">
               <button
                 onClick={() => window.open('https://www.instagram.com/zeppin.cakes/', '_blank')}
-                className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto hover:bg-rose-200 transition-colors"
+                className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto hover:bg-rose-200 transition-colors hover:scale-105"
               >
-                <span className="text-rose-600 font-bold">I</span>
+                <Instagram className="h-5 w-5 text-rose-600" />
               </button>
               <p className="text-xs text-gray-600">INSTAGRAM</p>
               <p className="text-xs text-gray-500">Follow us</p>
