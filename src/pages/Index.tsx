@@ -176,8 +176,7 @@ const Index = () => {
               <button onClick={handleLocationClick} className="hover:text-rose-600 transition-colors">
                 <MapPin className="h-5 w-5 text-gray-600 hover:text-rose-600" />
               </button>
-              <Heart className="h-5 w-5 text-gray-600" />
-              <button 
+              <button
                 onClick={() => setIsCartModalOpen(true)}
                 className="relative hover:text-rose-600 transition-colors"
               >
@@ -450,11 +449,19 @@ const Index = () => {
               <p className="text-xs text-gray-500">Follow us</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
+              <button
+                onClick={() => navigator.clipboard.writeText('01763663279')}
+                className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto hover:bg-rose-200 transition-colors hover:scale-105"
+              >
                 <span className="text-rose-600 font-bold">B</span>
-              </div>
+              </button>
               <p className="text-xs text-gray-600">BKASH</p>
-              <p className="text-xs text-gray-500">01763663279</p>
+              <button
+                onClick={() => navigator.clipboard.writeText('01763663279')}
+                className="text-xs text-gray-500 hover:underline"
+              >
+                01763663279
+              </button>
             </div>
           </div>
           <div className="text-center text-gray-500 text-sm space-y-2">
