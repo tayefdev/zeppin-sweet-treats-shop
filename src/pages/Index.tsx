@@ -451,17 +451,10 @@ const Index = () => {
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
-                <span className="text-rose-600 font-bold">M</span>
+                <span className="text-rose-600 font-bold">B</span>
               </div>
-              <p className="text-xs text-gray-600">MARKETING</p>
-              <p className="text-xs text-gray-500">Campaigns & events</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-2 mx-auto">
-                <span className="text-rose-600 font-bold">A</span>
-              </div>
-              <p className="text-xs text-gray-600">ALSO VIEW</p>
-              <p className="text-xs text-gray-500">More of our treats</p>
+              <p className="text-xs text-gray-600">BKASH</p>
+              <p className="text-xs text-gray-500">01763663279</p>
             </div>
           </div>
           <div className="text-center text-gray-500 text-sm space-y-2">
