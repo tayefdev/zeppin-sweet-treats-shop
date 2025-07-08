@@ -60,6 +60,12 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
+  // Early return if not authenticated
+  const isAdminLoggedIn = localStorage.getItem('adminLoggedIn');
+  if (isAdminLoggedIn !== 'true') {
+    return null;
+  }
+
   // Fetch bakery items from Supabase
   const { data: items = [], isLoading: itemsLoading } = useQuery({
     queryKey: ['admin-bakery-items'],
@@ -118,13 +124,25 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <Button 
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="text-pink-600 border-pink-600 hover:bg-pink-50"
-          >
-            Back to Website
-          </Button>
+          <div className="flex gap-4">
+            <Button 
+              onClick={() => {
+                localStorage.removeItem('adminLoggedIn');
+                navigate('/admin');
+              }}
+              variant="outline"
+              className="text-red-600 border-red-600 hover:bg-red-50"
+            >
+              Logout
+            </Button>
+            <Button 
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="text-pink-600 border-pink-600 hover:bg-pink-50"
+            >
+              Back to Website
+            </Button>
+          </div>
         </div>
 
         <WebhookTester />
