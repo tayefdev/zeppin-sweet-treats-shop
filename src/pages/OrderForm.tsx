@@ -57,6 +57,24 @@ const OrderForm = () => {
     enabled: !!itemId
   });
 
+  // Fetch active global sales
+  const { data: activeSale } = useQuery({
+    queryKey: ['active-global-sale'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('global_sales')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      
+      return data || null;
+    }
+  });
+
   // Function to trigger Make.com webhook
   const triggerWebhook = async (orderData: any) => {
     try {
@@ -171,10 +189,12 @@ const OrderForm = () => {
       return;
     }
 
-    // Calculate final price with sale discount
+    // Calculate final price with sale discount (individual sale takes priority over global sale)
     let finalPrice = item.price;
     if (item.is_on_sale && item.sale_percentage) {
       finalPrice = item.price * (1 - item.sale_percentage / 100);
+    } else if (activeSale && activeSale.discount_percentage) {
+      finalPrice = item.price * (1 - activeSale.discount_percentage / 100);
     }
 
     const orderData = {
@@ -193,9 +213,16 @@ const OrderForm = () => {
     createOrderMutation.mutate(orderData);
   };
 
-  const finalPrice = item && item.is_on_sale && item.sale_percentage 
-    ? item.price * (1 - item.sale_percentage / 100)
-    : item ? item.price : 0;
+  // Calculate final price for display (same logic as in form submission)
+  let finalPrice = 0;
+  if (item) {
+    finalPrice = item.price;
+    if (item.is_on_sale && item.sale_percentage) {
+      finalPrice = item.price * (1 - item.sale_percentage / 100);
+    } else if (activeSale && activeSale.discount_percentage) {
+      finalPrice = item.price * (1 - activeSale.discount_percentage / 100);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -237,9 +264,12 @@ const OrderForm = () => {
           {/* Item Details */}
           <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <div className="aspect-square overflow-hidden rounded-t-lg relative">
-              {item?.is_on_sale && item.sale_percentage && (
+              {((item?.is_on_sale && item.sale_percentage) || (activeSale && activeSale.discount_percentage)) && (
                 <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold z-10">
-                  {item.sale_percentage}% OFF
+                  {item?.is_on_sale && item.sale_percentage 
+                    ? `${item.sale_percentage}% OFF` 
+                    : `${activeSale?.discount_percentage}% OFF`
+                  }
                 </div>
               )}
               <img 
@@ -258,8 +288,14 @@ const OrderForm = () => {
                     <span className="text-2xl font-bold text-red-600">৳{finalPrice.toFixed(2)}</span>
                     <span className="text-sm text-red-600 font-medium">{item.sale_percentage}% OFF - Special Sale!</span>
                   </>
+                ) : activeSale && activeSale.discount_percentage ? (
+                  <>
+                    <span className="text-lg text-gray-500 line-through">৳{item.price}</span>
+                    <span className="text-2xl font-bold text-red-600">৳{finalPrice.toFixed(2)}</span>
+                    <span className="text-sm text-green-600 font-medium">{activeSale.name} - {activeSale.discount_percentage}% OFF!</span>
+                  </>
                 ) : (
-                    <span className="text-2xl font-bold text-gray-800">৳{finalPrice.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-gray-800">৳{finalPrice.toFixed(2)}</span>
                 )}
               </div>
             </CardHeader>

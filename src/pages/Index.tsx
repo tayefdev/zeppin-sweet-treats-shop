@@ -79,7 +79,7 @@ const Index = () => {
   const { addToCart, getTotalItems } = useCart();
   const { toast } = useToast();
 
-  // Optimized fetch with better caching
+  // Fetch bakery items
   const { data: items = [], isLoading, error } = useQuery({
     queryKey: ['bakery-items'],
     queryFn: async () => {
@@ -102,6 +102,30 @@ const Index = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch active global sales
+  const { data: activeSale } = useQuery({
+    queryKey: ['active-global-sale'],
+    queryFn: async () => {
+      console.log('Fetching active global sale...');
+      const { data, error } = await supabase
+        .from('global_sales')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching global sale:', error);
+        throw error;
+      }
+      
+      console.log('Active global sale:', data);
+      return data || null;
+    },
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
   const categories = ['All', ...new Set(items.map(item => item.category))];
 
   const filteredItems = selectedCategory === 'All' 
@@ -109,9 +133,17 @@ const Index = () => {
     : items.filter(item => item.category === selectedCategory);
 
   const handleAddToCart = (item: BakeryItem) => {
-    const finalPrice = item.is_on_sale && item.sale_percentage 
-      ? item.price * (1 - item.sale_percentage / 100)
-      : item.price;
+    // Apply individual sale first, then global sale if no individual sale
+    let finalPrice = item.price;
+    let discountText = '';
+    
+    if (item.is_on_sale && item.sale_percentage) {
+      finalPrice = item.price * (1 - item.sale_percentage / 100);
+      discountText = `${item.sale_percentage}% OFF`;
+    } else if (activeSale && activeSale.discount_percentage) {
+      finalPrice = item.price * (1 - activeSale.discount_percentage / 100);
+      discountText = `${activeSale.name} - ${activeSale.discount_percentage}% OFF`;
+    }
     
     addToCart({
       id: item.id,
@@ -159,6 +191,22 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-100 via-rose-50 to-amber-50">
+      
+      {/* Global Sale Banner */}
+      {activeSale && (
+        <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative z-10">
+            <p className="text-lg font-bold animate-pulse">
+              🔥 {activeSale.name} - {activeSale.discount_percentage}% OFF on all items! 🔥
+            </p>
+            {activeSale.description && (
+              <p className="text-sm opacity-90">{activeSale.description}</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Top Banner */}
       <div className="bg-rose-300 text-center py-2 text-sm text-rose-800 flex items-center justify-center gap-4">
         <div>Check out our great new range in desserts</div>
@@ -372,15 +420,31 @@ const Index = () => {
               ))
             ) : (
               filteredItems.map((item) => {
-                const finalPrice = item.is_on_sale && item.sale_percentage 
-                  ? item.price * (1 - item.sale_percentage / 100)
-                  : item.price;
+                // Calculate final price and discount info
+                let finalPrice = item.price;
+                let hasDiscount = false;
+                let discountPercentage = 0;
+                let discountLabel = '';
+                
+                if (item.is_on_sale && item.sale_percentage) {
+                  // Individual item sale takes priority
+                  finalPrice = item.price * (1 - item.sale_percentage / 100);
+                  hasDiscount = true;
+                  discountPercentage = item.sale_percentage;
+                  discountLabel = `${item.sale_percentage}% OFF`;
+                } else if (activeSale && activeSale.discount_percentage) {
+                  // Apply global sale if no individual sale
+                  finalPrice = item.price * (1 - activeSale.discount_percentage / 100);
+                  hasDiscount = true;
+                  discountPercentage = activeSale.discount_percentage;
+                  discountLabel = `${activeSale.name} - ${activeSale.discount_percentage}% OFF`;
+                }
                 
                 return (
                   <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white relative">
-                    {item.is_on_sale && item.sale_percentage && (
+                    {hasDiscount && (
                       <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold z-10">
-                        {item.sale_percentage}% OFF
+                        {discountPercentage}% OFF
                       </div>
                     )}
                     <div className="aspect-square overflow-hidden">
@@ -394,10 +458,11 @@ const Index = () => {
                       <CardTitle className="text-xl text-gray-800 flex items-center justify-between font-serif">
                         {item.name}
                         <div className="flex flex-col items-end">
-                          {item.is_on_sale && item.sale_percentage ? (
+                          {hasDiscount ? (
                             <>
                               <span className="text-sm text-gray-500 line-through">৳{item.price}</span>
                               <span className="text-lg font-bold text-red-600">৳{finalPrice.toFixed(2)}</span>
+                              <span className="text-xs text-green-600">{discountLabel}</span>
                             </>
                           ) : (
                             <span className="text-lg font-bold text-gray-800">৳{finalPrice.toFixed(2)}</span>
