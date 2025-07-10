@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import WebhookTester from '@/components/WebhookTester';
 import ItemsManagement from '@/components/admin/ItemsManagement';
 import OrdersHistory from '@/components/admin/OrdersHistory';
+import GlobalSalesManagement from '@/components/admin/GlobalSalesManagement';
 
 interface BakeryItem {
   id: string;
@@ -148,8 +149,9 @@ const AdminDashboard = () => {
         <WebhookTester />
 
         <Tabs defaultValue="items" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="items">Manage Items</TabsTrigger>
+            <TabsTrigger value="sales">Global Sales</TabsTrigger>
             <TabsTrigger value="orders" onClick={handleOrdersTabClick} className="relative">
               Order History
               {newOrdersCount > 0 && (
@@ -162,6 +164,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="items" className="space-y-6">
             <ItemsManagement items={items} isLoading={itemsLoading} />
+          </TabsContent>
+
+          <TabsContent value="sales" className="space-y-6">
+            <GlobalSalesManagement />
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">

@@ -53,6 +53,42 @@ export type Database = {
         }
         Relationships: []
       }
+      global_sales: {
+        Row: {
+          created_at: string
+          description: string | null
+          discount_percentage: number
+          end_date: string | null
+          id: string
+          is_active: boolean
+          name: string
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discount_percentage: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discount_percentage?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
