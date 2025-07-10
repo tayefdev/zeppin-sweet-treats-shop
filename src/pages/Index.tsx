@@ -375,7 +375,6 @@ const Index = () => {
                 const finalPrice = item.is_on_sale && item.sale_percentage 
                   ? item.price * (1 - item.sale_percentage / 100)
                   : item.price;
-                const discountedPrice = item.price * 0.93; // 7% off for 7.7 sale
                 
                 return (
                   <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white relative">
@@ -401,11 +400,7 @@ const Index = () => {
                               <span className="text-lg font-bold text-red-600">৳{finalPrice.toFixed(2)}</span>
                             </>
                           ) : (
-                            <>
-                              <span className="text-sm text-gray-500 line-through">৳{item.price}</span>
-                              <span className="text-lg font-bold text-rose-600">৳{discountedPrice.toFixed(2)}</span>
-                              <span className="text-xs text-green-600">7.7 Sale - 7% OFF</span>
-                            </>
+                            <span className="text-lg font-bold text-gray-800">৳{finalPrice.toFixed(2)}</span>
                           )}
                         </div>
                       </CardTitle>
@@ -444,35 +439,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Holiday Collection Section */}
-      <section className="py-16 bg-gradient-to-r from-rose-200 to-amber-200">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
-            <div className="flex-1">
-              <LazyImage 
-                src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                alt="Holiday Cake"
-                className="w-full max-w-md mx-auto"
-              />
-            </div>
-            <div className="flex-1 text-center">
-              <h3 className="text-4xl font-serif text-gray-800 mb-6 italic">7.7 Sale</h3>
-              <div className="bg-white p-6 rounded-lg shadow-lg inline-block mb-6">
-                <span className="text-3xl font-bold text-rose-600">7% OFF</span>
-                <p className="text-sm text-gray-600 mt-2">On all purchases!</p>
-              </div>
-              <div>
-                <Button 
-                  className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-full text-lg font-medium"
-                  onClick={scrollToMenu}
-                >
-                  ORDER TODAY
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-white py-8 border-t">

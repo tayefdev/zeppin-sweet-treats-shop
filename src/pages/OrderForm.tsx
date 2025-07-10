@@ -171,12 +171,10 @@ const OrderForm = () => {
       return;
     }
 
-    // Calculate final price with sale or 7.7 sale discount
+    // Calculate final price with sale discount
     let finalPrice = item.price;
     if (item.is_on_sale && item.sale_percentage) {
       finalPrice = item.price * (1 - item.sale_percentage / 100);
-    } else {
-      finalPrice = item.price * 0.93; // 7% off for 7.7 sale
     }
 
     const orderData = {
@@ -197,7 +195,7 @@ const OrderForm = () => {
 
   const finalPrice = item && item.is_on_sale && item.sale_percentage 
     ? item.price * (1 - item.sale_percentage / 100)
-    : item ? item.price * 0.93 : 0; // 7% off for 7.7 sale
+    : item ? item.price : 0;
 
   if (isLoading) {
     return (
@@ -261,11 +259,7 @@ const OrderForm = () => {
                     <span className="text-sm text-red-600 font-medium">{item.sale_percentage}% OFF - Special Sale!</span>
                   </>
                 ) : (
-                  <>
-                    <span className="text-lg text-gray-500 line-through">৳{item?.price}</span>
-                    <span className="text-2xl font-bold text-rose-600">৳{finalPrice.toFixed(2)}</span>
-                    <span className="text-sm text-green-600 font-medium">7.7 Sale - 7% OFF!</span>
-                  </>
+                    <span className="text-2xl font-bold text-gray-800">৳{finalPrice.toFixed(2)}</span>
                 )}
               </div>
             </CardHeader>
@@ -303,13 +297,9 @@ const OrderForm = () => {
                     <p className="font-semibold text-gray-800">
                       Total: ৳{(finalPrice * quantity).toFixed(2)}
                     </p>
-                    {item?.is_on_sale && item.sale_percentage ? (
+                    {item?.is_on_sale && item.sale_percentage && (
                       <p className="text-sm text-red-600">
                         You save: ৳{((item.price - finalPrice) * quantity).toFixed(2)} with {item.sale_percentage}% off!
-                      </p>
-                    ) : (
-                      <p className="text-sm text-green-600">
-                        You save: ৳{((item?.price || 0) * 0.07 * quantity).toFixed(2)} with 7.7 Sale!
                       </p>
                     )}
                   </div>
