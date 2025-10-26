@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, X, Image } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageUploadProps {
   value: string;
@@ -58,19 +59,33 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Ima
     setIsUploading(true);
     
     try {
-      // Convert file to base64 for demo purposes
-      // In a real app, you'd upload to a service like Supabase Storage
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        onChange(result);
-        toast({
-          title: "Image Uploaded",
-          description: "Image has been uploaded successfully!",
+      // Create unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = fileName;
+
+      // Upload to Supabase Storage
+      const { error: uploadError, data } = await supabase.storage
+        .from('bakery-items')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
         });
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('bakery-items')
+        .getPublicUrl(filePath);
+
+      onChange(publicUrl);
+      toast({
+        title: "Image Uploaded",
+        description: "Image has been uploaded successfully!",
+      });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
@@ -78,11 +93,26 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Ima
         description: "Failed to upload image. Please try again.",
         variant: "destructive"
       });
+    } finally {
       setIsUploading(false);
     }
   };
 
-  const removeImage = () => {
+  const removeImage = async () => {
+    // If it's a Supabase storage URL, delete the file
+    if (value.includes('bakery-items')) {
+      try {
+        const fileName = value.split('/').pop();
+        if (fileName) {
+          await supabase.storage
+            .from('bakery-items')
+            .remove([fileName]);
+        }
+      } catch (error) {
+        console.error('Error deleting image:', error);
+      }
+    }
+    
     onChange('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
