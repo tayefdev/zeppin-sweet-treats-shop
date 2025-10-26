@@ -229,79 +229,6 @@ const Index = () => {
         </div>
       )}
 
-      {/* Top Banner - Video/Image (Replaces Hero Section) */}
-      {activeBanner ? (
-        <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[70vh] overflow-hidden">
-          {activeBanner.banner_type === 'video' ? (
-            <video
-              src={activeBanner.banner_url}
-              className="w-full h-full object-cover"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          ) : (
-            <img
-              src={activeBanner.banner_url}
-              alt="Banner"
-              className="w-full h-full object-cover"
-            />
-          )}
-          {/* Overlay with call-to-action */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-            <div className="absolute bottom-0 left-0 right-0 text-white py-8 md:py-12 px-4">
-              <div className="container mx-auto text-center">
-                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif mb-4 md:mb-6 italic leading-tight">
-                  Delight in every bite!
-                </h2>
-                <p className="text-base md:text-xl mb-6 md:mb-8 max-w-2xl mx-auto">
-                  Discover fresh and artisanal desserts & sweets
-                </p>
-                <Button 
-                  className="bg-rose-400 hover:bg-rose-500 text-white px-6 md:px-8 py-3 md:py-4 rounded-full text-base md:text-lg font-medium shadow-lg hover:shadow-xl transition-all"
-                  onClick={scrollToMenu}
-                >
-                  ORDER NOW
-                </Button>
-                {/* Contact info */}
-                <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs md:text-sm">
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    <button onClick={handlePhoneClick} className="hover:underline">
-                      01304073314
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <button onClick={handleLocationClick} className="hover:underline">
-                      HATIR POOL, DHAKA
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <section className="relative py-12 md:py-20 px-4 text-center bg-gradient-to-r from-rose-200 via-rose-100 to-amber-100">
-          <div className="container mx-auto max-w-4xl">
-            <h2 className="text-4xl md:text-6xl font-serif text-gray-800 mb-4 md:mb-6 italic leading-tight">
-              Delight in<br />every bite!
-            </h2>
-            <p className="text-gray-600 mb-6 md:mb-8 text-base md:text-lg max-w-2xl mx-auto px-4">
-              Discover fresh and artisanal desserts & sweets
-            </p>
-            <Button 
-              className="bg-rose-400 hover:bg-rose-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full text-base md:text-lg font-medium"
-              onClick={scrollToMenu}
-            >
-              ORDER NOW
-            </Button>
-          </div>
-        </section>
-      )}
-
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -388,6 +315,80 @@ const Index = () => {
           </nav>
         </div>
       </header>
+
+      {/* Top Banner - Video/Image (Replaces Hero Section) */}
+      {activeBanner ? (
+        <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[70vh] overflow-hidden">
+          {activeBanner.banner_type === 'video' ? (
+            <video
+              src={activeBanner.banner_url}
+              className="w-full h-full object-cover"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          ) : (
+            <img
+              src={activeBanner.banner_url}
+              alt="Banner"
+              className="w-full h-full object-cover"
+            />
+          )}
+          {/* Overlay with call-to-action */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 text-white py-8 md:py-12 px-4">
+              <div className="container mx-auto text-center">
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif mb-4 md:mb-6 italic leading-tight">
+                  Delight in every bite!
+                </h2>
+                <p className="text-base md:text-xl mb-6 md:mb-8 max-w-2xl mx-auto">
+                  Discover fresh and artisanal desserts & sweets
+                </p>
+                <Button 
+                  className="bg-rose-400 hover:bg-rose-500 text-white px-6 md:px-8 py-3 md:py-4 rounded-full text-base md:text-lg font-medium shadow-lg hover:shadow-xl transition-all"
+                  onClick={scrollToMenu}
+                >
+                  ORDER NOW
+                </Button>
+                {/* Contact info */}
+                <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs md:text-sm">
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    <button onClick={handlePhoneClick} className="hover:underline">
+                      01304073314
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <button onClick={handleLocationClick} className="hover:underline">
+                      HATIR POOL, DHAKA
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <section className="relative py-12 md:py-20 px-4 text-center bg-gradient-to-r from-rose-200 via-rose-100 to-amber-100">
+          <div className="container mx-auto max-w-4xl">
+            <h2 className="text-4xl md:text-6xl font-serif text-gray-800 mb-4 md:mb-6 italic leading-tight">
+              Delight in<br />every bite!
+            </h2>
+            <p className="text-gray-600 mb-6 md:mb-8 text-base md:text-lg max-w-2xl mx-auto px-4">
+              Discover fresh and artisanal desserts & sweets
+            </p>
+            <Button 
+              className="bg-rose-400 hover:bg-rose-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full text-base md:text-lg font-medium"
+              onClick={scrollToMenu}
+            >
+              ORDER NOW
+            </Button>
+          </div>
+        </section>
+      )}
+
 
       {/* About Us Section */}
       {showAbout && (
