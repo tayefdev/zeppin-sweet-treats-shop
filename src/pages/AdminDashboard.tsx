@@ -10,6 +10,7 @@ import WebhookTester from '@/components/WebhookTester';
 import ItemsManagement from '@/components/admin/ItemsManagement';
 import OrdersHistory from '@/components/admin/OrdersHistory';
 import GlobalSalesManagement from '@/components/admin/GlobalSalesManagement';
+import { BannerManagement } from '@/components/admin/BannerManagement';
 
 interface BakeryItem {
   id: string;
@@ -149,9 +150,10 @@ const AdminDashboard = () => {
         <WebhookTester />
 
         <Tabs defaultValue="items" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="items">Manage Items</TabsTrigger>
             <TabsTrigger value="sales">Global Sales</TabsTrigger>
+            <TabsTrigger value="banner">Banner</TabsTrigger>
             <TabsTrigger value="orders" onClick={handleOrdersTabClick} className="relative">
               Order History
               {newOrdersCount > 0 && (
@@ -168,6 +170,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="sales" className="space-y-6">
             <GlobalSalesManagement />
+          </TabsContent>
+
+          <TabsContent value="banner" className="space-y-6">
+            <BannerManagement />
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">

@@ -126,6 +126,28 @@ const Index = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch active banner
+  const { data: activeBanner } = useQuery({
+    queryKey: ['active-banner'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('banner_settings')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching banner:', error);
+        throw error;
+      }
+      
+      return data || null;
+    },
+    staleTime: 1 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   const categories = ['All', ...new Set(items.map(item => item.category))];
 
   const filteredItems = selectedCategory === 'All' 
@@ -168,7 +190,7 @@ const Index = () => {
   };
 
   const handleHomeClick = () => {
-    window.location.reload();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const scrollToMenu = () => {
@@ -207,38 +229,78 @@ const Index = () => {
         </div>
       )}
 
-      {/* Top Banner */}
-      <div className="bg-rose-300 text-center py-2 text-sm text-rose-800 flex items-center justify-center gap-4">
-        <div>Check out our great new range in desserts</div>
-        <div className="flex items-center gap-2">
-          <Phone className="h-4 w-4" />
-          <button onClick={handlePhoneClick} className="hover:underline">
-            01304073314
-          </button>
+      {/* Top Banner - Video/Image */}
+      {activeBanner ? (
+        <div className="relative w-full h-48 md:h-64 lg:h-80 overflow-hidden">
+          {activeBanner.banner_type === 'video' ? (
+            <video
+              src={activeBanner.banner_url}
+              className="w-full h-full object-cover"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          ) : (
+            <img
+              src={activeBanner.banner_url}
+              alt="Banner"
+              className="w-full h-full object-cover"
+            />
+          )}
+          {/* Overlay contact info */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white py-3 px-4">
+            <div className="container mx-auto flex flex-wrap items-center justify-center gap-4 text-xs md:text-sm">
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <button onClick={handlePhoneClick} className="hover:underline">
+                  01304073314
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <button onClick={handleLocationClick} className="hover:underline">
+                  HATIR POOL, DHAKA
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          <button onClick={handleLocationClick} className="hover:underline">
-            HATIR POOL, DHAKA
-          </button>
+      ) : (
+        <div className="bg-rose-300 text-center py-3 px-4 text-sm text-rose-800">
+          <div className="container mx-auto flex flex-wrap items-center justify-center gap-4">
+            <div>Check out our great new range in desserts</div>
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              <button onClick={handlePhoneClick} className="hover:underline">
+                01304073314
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <button onClick={handleLocationClick} className="hover:underline">
+                HATIR POOL, DHAKA
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-between gap-4">
+            {/* Logo - Clickable */}
+            <button onClick={handleHomeClick} className="flex items-center space-x-3 flex-shrink-0">
               <LazyImage 
                 src="/lovable-uploads/6f30b366-0e3c-498f-a5ab-c9b2a19bac7a.png" 
                 alt="Zeppin Bakery Logo" 
-                className="h-20 w-20 object-contain"
+                className="h-16 w-16 md:h-20 md:w-20 object-contain hover:opacity-80 transition-opacity"
               />
-            </div>
+            </button>
 
-            {/* Centered Navigation */}
-            <nav className="flex items-center space-x-8">
+            {/* Centered Navigation - Hidden on mobile */}
+            <nav className="hidden md:flex items-center space-x-8">
               <Button
                 variant="ghost"
                 className="text-gray-700 hover:text-rose-600 font-medium"
@@ -264,7 +326,7 @@ const Index = () => {
 
             {/* Right Side Icons */}
             <div className="flex items-center space-x-4">
-              <button onClick={handleLocationClick} className="hover:text-rose-600 transition-colors">
+              <button onClick={handleLocationClick} className="hover:text-rose-600 transition-colors hidden md:block">
                 <MapPin className="h-5 w-5 text-gray-600 hover:text-rose-600" />
               </button>
               <button
@@ -280,6 +342,34 @@ const Index = () => {
               </button>
             </div>
           </div>
+
+          {/* Mobile Navigation */}
+          <nav className="flex md:hidden items-center justify-center space-x-4 mt-3 pt-3 border-t">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-700 hover:text-rose-600 font-medium"
+              onClick={handleHomeClick}
+            >
+              HOME
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-700 hover:text-rose-600 font-medium"
+              onClick={scrollToMenu}
+            >
+              MENU
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-700 hover:text-rose-600 font-medium"
+              onClick={() => setShowAbout(!showAbout)}
+            >
+              ABOUT US
+            </Button>
+          </nav>
         </div>
       </header>
 
@@ -307,16 +397,16 @@ const Index = () => {
       )}
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 text-center bg-gradient-to-r from-rose-200 via-rose-100 to-amber-100">
+      <section className="relative py-12 md:py-20 px-4 text-center bg-gradient-to-r from-rose-200 via-rose-100 to-amber-100">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-6xl font-serif text-gray-800 mb-6 italic leading-tight">
+          <h2 className="text-4xl md:text-6xl font-serif text-gray-800 mb-4 md:mb-6 italic leading-tight">
             Delight in<br />every bite!
           </h2>
-          <p className="text-gray-600 mb-8 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 mb-6 md:mb-8 text-base md:text-lg max-w-2xl mx-auto px-4">
             Discover fresh and artisanal desserts & sweets
           </p>
           <Button 
-            className="bg-rose-400 hover:bg-rose-500 text-white px-8 py-3 rounded-full text-lg font-medium"
+            className="bg-rose-400 hover:bg-rose-500 text-white px-6 md:px-8 py-2 md:py-3 rounded-full text-base md:text-lg font-medium"
             onClick={scrollToMenu}
           >
             ORDER NOW
@@ -325,11 +415,11 @@ const Index = () => {
       </section>
 
       {/* Signature Section */}
-      <section className="py-16 bg-white">
+      <section className="py-12 md:py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h3 className="text-4xl font-serif text-center text-gray-800 mb-12 italic">Signature</h3>
+          <h3 className="text-3xl md:text-4xl font-serif text-center text-gray-800 mb-8 md:mb-12 italic">Signature</h3>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
             {/* Custom Cakes */}
             <div className="text-center">
               <div 
@@ -391,10 +481,10 @@ const Index = () => {
       </section>
 
       {/* Products Section */}
-      <section id="products" className="py-16 bg-rose-50">
+      <section id="products" className="py-12 md:py-16 bg-rose-50">
         <div className="container mx-auto px-4">
           {/* Category Filter */}
-          <div className="flex flex-wrap gap-2 mb-12 justify-center">
+          <div className="flex flex-wrap gap-2 mb-8 md:mb-12 justify-center">
             {categories.map(category => (
               <Button
                 key={category}
@@ -412,7 +502,7 @@ const Index = () => {
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
             {isLoading ? (
               // Show skeleton loaders while loading
               Array.from({ length: 6 }).map((_, index) => (
