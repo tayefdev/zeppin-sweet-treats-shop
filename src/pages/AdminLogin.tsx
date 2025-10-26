@@ -6,54 +6,76 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Lock } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, signUp, isAdmin, loading } = useAuth();
 
   useEffect(() => {
-    if (!loading && isAdmin) {
-      navigate('/admin/dashboard');
-    }
-  }, [isAdmin, loading, navigate]);
+    // Check if already logged in
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Check if user has admin role
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        
+        if (roles) {
+          navigate('/admin/dashboard');
+        }
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    if (!email || !password) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter both email and password.",
-        variant: "destructive"
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      return;
-    }
 
-    const { error } = isSignUp 
-      ? await signUp(email, password)
-      : await signIn(email, password);
+      if (error) throw error;
 
-    if (error) {
-      toast({
-        title: isSignUp ? "Sign Up Failed" : "Login Failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: isSignUp ? "Sign Up Successful" : "Login Successful",
-        description: isSignUp 
-          ? "Please check your email to confirm your account." 
-          : "Welcome to the admin panel!",
-      });
-      if (!isSignUp) {
-        navigate('/admin/dashboard');
+      // Check if user has admin role
+      const { data: roles, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (roleError) throw roleError;
+
+      if (!roles) {
+        await supabase.auth.signOut();
+        throw new Error('You do not have admin access');
       }
+
+      toast({
+        title: "Login Successful",
+        description: "Welcome to the admin panel!",
+      });
+      navigate('/admin/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message || "Invalid credentials.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -86,7 +108,7 @@ const AdminLogin = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
+                  placeholder="Enter your email"
                   required
                   className="mt-1"
                 />
@@ -102,25 +124,15 @@ const AdminLogin = () => {
                   placeholder="Enter password"
                   required
                   className="mt-1"
-                  minLength={6}
                 />
               </div>
 
               <Button 
                 type="submit" 
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-semibold py-2 rounded-full"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-semibold py-2 rounded-full disabled:opacity-50"
               >
-                {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Login')}
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="w-full"
-              >
-                {isSignUp ? 'Already have an account? Login' : 'Need an account? Sign Up'}
+                {isLoading ? 'Logging in...' : 'Login'}
               </Button>
             </form>
           </CardContent>
