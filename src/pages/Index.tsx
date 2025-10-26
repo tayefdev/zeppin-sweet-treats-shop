@@ -287,7 +287,7 @@ const Index = () => {
           </div>
 
           {/* Mobile Navigation */}
-          <nav className="flex md:hidden items-center justify-center space-x-4 mt-3 pt-3 border-t">
+          <nav className="flex md:hidden items-center justify-start space-x-4 mt-3 pt-3 border-t">
             <Button
               variant="ghost"
               size="sm"
