@@ -58,24 +58,24 @@ export type Database = {
           banner_type: string
           banner_url: string
           created_at: string | null
+          display_order: number | null
           id: string
-          is_active: boolean | null
           updated_at: string | null
         }
         Insert: {
           banner_type: string
           banner_url: string
           created_at?: string | null
+          display_order?: number | null
           id?: string
-          is_active?: boolean | null
           updated_at?: string | null
         }
         Update: {
           banner_type?: string
           banner_url?: string
           created_at?: string | null
+          display_order?: number | null
           id?: string
-          is_active?: boolean | null
           updated_at?: string | null
         }
         Relationships: []

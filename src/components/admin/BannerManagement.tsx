@@ -6,13 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, Trash2 } from 'lucide-react';
+import { Loader2, Upload, Trash2, GripVertical, MoveUp, MoveDown } from 'lucide-react';
 
 interface BannerSetting {
   id: string;
   banner_type: 'image' | 'video';
   banner_url: string;
-  is_active: boolean;
+  display_order: number;
   created_at: string;
 }
 
@@ -23,19 +23,16 @@ export const BannerManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: activeBanner, isLoading } = useQuery({
-    queryKey: ['active-banner'],
+  const { data: banners = [], isLoading } = useQuery({
+    queryKey: ['banners'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('banner_settings')
         .select('*')
-        .eq('is_active', true)
-        .single();
+        .order('display_order', { ascending: true });
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-      return data as BannerSetting | null;
+      if (error) throw error;
+      return data as BannerSetting[];
     },
   });
 
@@ -50,7 +47,7 @@ export const BannerManagement = () => {
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('banners')
         .upload(filePath, file);
 
@@ -60,13 +57,10 @@ export const BannerManagement = () => {
         .from('banners')
         .getPublicUrl(filePath);
 
-      // Deactivate old banner
-      if (activeBanner) {
-        await supabase
-          .from('banner_settings')
-          .update({ is_active: false })
-          .eq('id', activeBanner.id);
-      }
+      // Get the highest display order
+      const maxOrder = banners.length > 0 
+        ? Math.max(...banners.map(b => b.display_order)) 
+        : -1;
 
       // Insert new banner
       const { error: insertError } = await supabase
@@ -74,7 +68,7 @@ export const BannerManagement = () => {
         .insert({
           banner_type: bannerType,
           banner_url: publicUrl,
-          is_active: true,
+          display_order: maxOrder + 1,
         });
 
       if (insertError) throw insertError;
@@ -82,7 +76,7 @@ export const BannerManagement = () => {
       return publicUrl;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['active-banner'] });
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
       toast({
         title: 'Success',
         description: 'Banner uploaded successfully!',
@@ -102,11 +96,9 @@ export const BannerManagement = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!activeBanner) return;
-
+    mutationFn: async (banner: BannerSetting) => {
       // Delete from storage
-      const fileName = activeBanner.banner_url.split('/').pop();
+      const fileName = banner.banner_url.split('/').pop();
       if (fileName) {
         await supabase.storage.from('banners').remove([fileName]);
       }
@@ -115,12 +107,24 @@ export const BannerManagement = () => {
       const { error } = await supabase
         .from('banner_settings')
         .delete()
-        .eq('id', activeBanner.id);
+        .eq('id', banner.id);
 
       if (error) throw error;
+
+      // Reorder remaining banners
+      const remainingBanners = banners
+        .filter(b => b.id !== banner.id)
+        .sort((a, b) => a.display_order - b.display_order);
+
+      for (let i = 0; i < remainingBanners.length; i++) {
+        await supabase
+          .from('banner_settings')
+          .update({ display_order: i })
+          .eq('id', remainingBanners[i].id);
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['active-banner'] });
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
       toast({
         title: 'Success',
         description: 'Banner deleted successfully!',
@@ -136,6 +140,59 @@ export const BannerManagement = () => {
     },
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async ({ bannerId, newOrder }: { bannerId: string; newOrder: number }) => {
+      const banner = banners.find(b => b.id === bannerId);
+      if (!banner) return;
+
+      const oldOrder = banner.display_order;
+
+      // Update the moved banner
+      await supabase
+        .from('banner_settings')
+        .update({ display_order: newOrder })
+        .eq('id', bannerId);
+
+      // Shift other banners
+      if (newOrder < oldOrder) {
+        // Moving up: shift banners down
+        for (const b of banners) {
+          if (b.id !== bannerId && b.display_order >= newOrder && b.display_order < oldOrder) {
+            await supabase
+              .from('banner_settings')
+              .update({ display_order: b.display_order + 1 })
+              .eq('id', b.id);
+          }
+        }
+      } else {
+        // Moving down: shift banners up
+        for (const b of banners) {
+          if (b.id !== bannerId && b.display_order > oldOrder && b.display_order <= newOrder) {
+            await supabase
+              .from('banner_settings')
+              .update({ display_order: b.display_order - 1 })
+              .eq('id', b.id);
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast({
+        title: 'Success',
+        description: 'Banner order updated!',
+      });
+    },
+    onError: (error) => {
+      console.error('Reorder error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reorder banner.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
@@ -146,9 +203,27 @@ export const BannerManagement = () => {
     uploadMutation.mutate();
   };
 
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to delete the current banner?')) {
-      deleteMutation.mutate();
+  const handleDelete = (banner: BannerSetting) => {
+    if (confirm('Are you sure you want to delete this banner?')) {
+      deleteMutation.mutate(banner);
+    }
+  };
+
+  const handleMoveUp = (banner: BannerSetting) => {
+    if (banner.display_order > 0) {
+      reorderMutation.mutate({
+        bannerId: banner.id,
+        newOrder: banner.display_order - 1,
+      });
+    }
+  };
+
+  const handleMoveDown = (banner: BannerSetting) => {
+    if (banner.display_order < banners.length - 1) {
+      reorderMutation.mutate({
+        bannerId: banner.id,
+        newOrder: banner.display_order + 1,
+      });
     }
   };
 
@@ -167,46 +242,6 @@ export const BannerManagement = () => {
           <CardTitle>Top Banner Management</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Current Banner Preview */}
-          {activeBanner && (
-            <div className="space-y-4">
-              <Label>Current Banner</Label>
-              <div className="relative border rounded-lg overflow-hidden">
-                {activeBanner.banner_type === 'video' ? (
-                  <video
-                    src={activeBanner.banner_url}
-                    className="w-full h-48 object-cover"
-                    controls
-                    muted
-                  />
-                ) : (
-                  <img
-                    src={activeBanner.banner_url}
-                    alt="Current banner"
-                    className="w-full h-48 object-cover"
-                  />
-                )}
-              </div>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-              >
-                {deleteMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Banner
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-
           {/* Upload New Banner */}
           <div className="space-y-4">
             <Label>Upload New Banner</Label>
@@ -253,6 +288,85 @@ export const BannerManagement = () => {
               )}
             </Button>
           </div>
+
+          {/* Current Banners */}
+          {banners.length > 0 && (
+            <div className="space-y-4">
+              <Label>Current Banners ({banners.length})</Label>
+              <div className="space-y-3">
+                {banners.map((banner, index) => (
+                  <div
+                    key={banner.id}
+                    className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50"
+                  >
+                    {/* Preview */}
+                    <div className="relative w-32 h-20 flex-shrink-0 border rounded overflow-hidden bg-white">
+                      {banner.banner_type === 'video' ? (
+                        <video
+                          src={banner.banner_url}
+                          className="w-full h-full object-cover"
+                          muted
+                        />
+                      ) : (
+                        <img
+                          src={banner.banner_url}
+                          alt={`Banner ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {banner.banner_type === 'video' ? 'Video' : 'Image'} Banner #{index + 1}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Order: {banner.display_order}
+                      </p>
+                    </div>
+
+                    {/* Controls */}
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleMoveUp(banner)}
+                        disabled={banner.display_order === 0 || reorderMutation.isPending}
+                        className="h-8 w-8"
+                      >
+                        <MoveUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleMoveDown(banner)}
+                        disabled={banner.display_order === banners.length - 1 || reorderMutation.isPending}
+                        className="h-8 w-8"
+                      >
+                        <MoveDown className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(banner)}
+                        disabled={deleteMutation.isPending}
+                        className="h-8 w-8 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {banners.length === 0 && (
+            <p className="text-sm text-gray-500 text-center py-4">
+              No banners uploaded yet. Upload your first banner above.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

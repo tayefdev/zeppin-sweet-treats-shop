@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCart } from '@/contexts/CartContext';
 import CartModal from '@/components/CartModal';
 import { useToast } from "@/hooks/use-toast";
+import { BannerCarousel } from '@/components/BannerCarousel';
 
 interface BakeryItem {
   id: string;
@@ -126,22 +127,24 @@ const Index = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Fetch active banner
-  const { data: activeBanner } = useQuery({
-    queryKey: ['active-banner'],
+  // Fetch all banners
+  const { data: banners = [] } = useQuery({
+    queryKey: ['banners'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('banner_settings')
         .select('*')
-        .eq('is_active', true)
-        .single();
+        .order('display_order', { ascending: true });
       
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching banner:', error);
+      if (error) {
+        console.error('Error fetching banners:', error);
         throw error;
       }
       
-      return data || null;
+      return (data || []).map(banner => ({
+        ...banner,
+        banner_type: banner.banner_type as 'image' | 'video'
+      }));
     },
     staleTime: 1 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
@@ -316,55 +319,38 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Top Banner - Video/Image (Replaces Hero Section) */}
-      {activeBanner ? (
-        <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[70vh] overflow-hidden">
-          {activeBanner.banner_type === 'video' ? (
-            <video
-              src={activeBanner.banner_url}
-              className="w-full h-full object-cover"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          ) : (
-            <img
-              src={activeBanner.banner_url}
-              alt="Banner"
-              className="w-full h-full object-cover"
-            />
-          )}
+      {/* Top Banner Carousel or Hero */}
+      {banners.length > 0 ? (
+        <div className="relative">
+          <BannerCarousel banners={banners} autoSlideInterval={10000} />
           {/* Overlay with call-to-action */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-            <div className="absolute bottom-0 left-0 right-0 text-white py-8 md:py-12 px-4">
-              <div className="container mx-auto text-center">
-                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif mb-4 md:mb-6 italic leading-tight">
-                  Delight in every bite!
-                </h2>
-                <p className="text-base md:text-xl mb-6 md:mb-8 max-w-2xl mx-auto">
-                  Discover fresh and artisanal desserts & sweets
-                </p>
-                <Button 
-                  className="bg-rose-400 hover:bg-rose-500 text-white px-6 md:px-8 py-3 md:py-4 rounded-full text-base md:text-lg font-medium shadow-lg hover:shadow-xl transition-all"
-                  onClick={scrollToMenu}
-                >
-                  ORDER NOW
-                </Button>
-                {/* Contact info */}
-                <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs md:text-sm">
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    <button onClick={handlePhoneClick} className="hover:underline">
-                      01304073314
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <button onClick={handleLocationClick} className="hover:underline">
-                      HATIR POOL, DHAKA
-                    </button>
-                  </div>
+          <div className="absolute bottom-0 left-0 right-0 text-white py-8 md:py-12 px-4 z-40 pointer-events-none">
+            <div className="container mx-auto text-center">
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif mb-4 md:mb-6 italic leading-tight">
+                Delight in every bite!
+              </h2>
+              <p className="text-base md:text-xl mb-6 md:mb-8 max-w-2xl mx-auto">
+                Discover fresh and artisanal desserts & sweets
+              </p>
+              <Button 
+                className="bg-rose-400 hover:bg-rose-500 text-white px-6 md:px-8 py-3 md:py-4 rounded-full text-base md:text-lg font-medium shadow-lg hover:shadow-xl transition-all pointer-events-auto"
+                onClick={scrollToMenu}
+              >
+                ORDER NOW
+              </Button>
+              {/* Contact info */}
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs md:text-sm pointer-events-auto">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  <button onClick={handlePhoneClick} className="hover:underline">
+                    01304073314
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <button onClick={handleLocationClick} className="hover:underline">
+                    HATIR POOL, DHAKA
+                  </button>
                 </div>
               </div>
             </div>
