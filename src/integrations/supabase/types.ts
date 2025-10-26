@@ -7,144 +7,14 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
-      bakery_items: {
-        Row: {
-          category: string
-          created_at: string
-          description: string | null
-          id: string
-          image: string
-          is_on_sale: boolean | null
-          name: string
-          price: number
-          sale_percentage: number | null
-          updated_at: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          image: string
-          is_on_sale?: boolean | null
-          name: string
-          price: number
-          sale_percentage?: number | null
-          updated_at?: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          image?: string
-          is_on_sale?: boolean | null
-          name?: string
-          price?: number
-          sale_percentage?: number | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      global_sales: {
-        Row: {
-          created_at: string
-          description: string | null
-          discount_percentage: number
-          end_date: string | null
-          id: string
-          is_active: boolean
-          name: string
-          start_date: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          discount_percentage: number
-          end_date?: string | null
-          id?: string
-          is_active?: boolean
-          name: string
-          start_date?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          discount_percentage?: number
-          end_date?: string | null
-          id?: string
-          is_active?: boolean
-          name?: string
-          start_date?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      orders: {
-        Row: {
-          created_at: string
-          customer_address: string
-          customer_email: string
-          customer_name: string
-          customer_phone: string
-          id: string
-          item_id: string | null
-          item_name: string
-          order_id: string
-          quantity: number
-          special_notes: string | null
-          status: string
-          total_amount: number
-        }
-        Insert: {
-          created_at?: string
-          customer_address: string
-          customer_email: string
-          customer_name: string
-          customer_phone: string
-          id?: string
-          item_id?: string | null
-          item_name: string
-          order_id: string
-          quantity?: number
-          special_notes?: string | null
-          status?: string
-          total_amount: number
-        }
-        Update: {
-          created_at?: string
-          customer_address?: string
-          customer_email?: string
-          customer_name?: string
-          customer_phone?: string
-          id?: string
-          item_id?: string | null
-          item_name?: string
-          order_id?: string
-          quantity?: number
-          special_notes?: string | null
-          status?: string
-          total_amount?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "bakery_items"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
