@@ -8,6 +8,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import AdminLogin from "./pages/AdminLogin";
+import AdminSetup from "./pages/AdminSetup";
 import AdminDashboard from "./pages/AdminDashboard";
 import OrderForm from "./pages/OrderForm";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/admin" element={<AdminLogin />} />
+              <Route path="/admin/setup" element={<AdminSetup />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/order/:itemId" element={<OrderForm />} />
               <Route path="*" element={<NotFound />} />
