@@ -39,7 +39,7 @@ const AdminSetup = () => {
       // Create the admin user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: 'zeppin@gmail.com',
-        password: '12345',
+        password: '123456',
         options: {
           emailRedirectTo: `${window.location.origin}/`,
         }
@@ -135,7 +135,7 @@ const AdminSetup = () => {
             <div className="bg-pink-50 p-4 rounded-lg">
               <p className="text-sm text-gray-700 mb-2">Admin credentials will be:</p>
               <p className="text-sm font-mono text-gray-800">Email: zeppin@gmail.com</p>
-              <p className="text-sm font-mono text-gray-800">Password: 12345</p>
+              <p className="text-sm font-mono text-gray-800">Password: 123456</p>
             </div>
 
             <Button 
