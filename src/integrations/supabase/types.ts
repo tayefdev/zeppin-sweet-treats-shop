@@ -56,6 +56,7 @@ export type Database = {
       global_sales: {
         Row: {
           created_at: string
+          description: string | null
           discount_percentage: number
           end_date: string | null
           id: string
@@ -66,6 +67,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           discount_percentage: number
           end_date?: string | null
           id?: string
@@ -76,6 +78,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           discount_percentage?: number
           end_date?: string | null
           id?: string
