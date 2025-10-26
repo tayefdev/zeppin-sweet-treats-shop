@@ -11,7 +11,6 @@ import ItemsManagement from '@/components/admin/ItemsManagement';
 import OrdersHistory from '@/components/admin/OrdersHistory';
 import GlobalSalesManagement from '@/components/admin/GlobalSalesManagement';
 import { BannerManagement } from '@/components/admin/BannerManagement';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface BakeryItem {
   id: string;
@@ -45,37 +44,16 @@ interface Order {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, loading, signOut } = useAuth();
   const [hasViewedOrders, setHasViewedOrders] = useState(false);
   const [lastOrderCount, setLastOrderCount] = useState(0);
 
   useEffect(() => {
-    // Redirect if not admin
-    if (!loading && !isAdmin) {
-      navigate('/admin');
-      return;
-    }
-
     // Get last viewed order count from localStorage
     const savedOrderCount = localStorage.getItem('lastViewedOrderCount');
     if (savedOrderCount) {
       setLastOrderCount(parseInt(savedOrderCount));
     }
-  }, [isAdmin, loading, navigate]);
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
-        <p className="text-lg">Loading...</p>
-      </div>
-    );
-  }
-
-  // Early return if not authenticated
-  if (!isAdmin) {
-    return null;
-  }
+  }, []);
 
   // Fetch bakery items from Supabase
   const { data: items = [], isLoading: itemsLoading } = useQuery({
@@ -135,25 +113,13 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <div className="flex gap-4">
-            <Button 
-              onClick={async () => {
-                await signOut();
-                navigate('/admin');
-              }}
-              variant="outline"
-              className="text-red-600 border-red-600 hover:bg-red-50"
-            >
-              Logout
-            </Button>
-            <Button 
-              onClick={() => navigate('/')}
-              variant="outline"
-              className="text-pink-600 border-pink-600 hover:bg-pink-50"
-            >
-              Back to Website
-            </Button>
-          </div>
+          <Button 
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="text-pink-600 border-pink-600 hover:bg-pink-50"
+          >
+            Back to Website
+          </Button>
         </div>
 
         <WebhookTester />
