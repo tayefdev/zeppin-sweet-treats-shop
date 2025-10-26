@@ -70,6 +70,51 @@ const AdminDashboard = () => {
     }
   }, []);
 
+  // Fetch bakery items from Supabase (hooks must be called before any returns)
+  const { data: items = [], isLoading: itemsLoading } = useQuery({
+    queryKey: ['admin-bakery-items'],
+    queryFn: async () => {
+      console.log('Fetching bakery items for admin...');
+      const { data, error } = await supabase
+        .from('bakery_items')
+        .select('*')
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching bakery items:', error);
+        throw error;
+      }
+      
+      return data || [];
+    },
+    enabled: isAuthenticated // Only fetch when authenticated
+  });
+
+  // Fetch orders with item details from Supabase (hooks must be called before any returns)
+  const { data: orders = [], isLoading: ordersLoading, refetch: refetchOrders } = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: async () => {
+      console.log('Fetching orders for admin...');
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          bakery_items (
+            image
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+      }
+      
+      return data || [];
+    },
+    enabled: isAuthenticated // Only fetch when authenticated
+  });
+
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -100,6 +145,16 @@ const AdminDashboard = () => {
       title: "Logged Out",
       description: "You have been logged out of the admin panel.",
     });
+  };
+
+  // Calculate new orders notification
+  const newOrdersCount = orders.length > lastOrderCount ? orders.length - lastOrderCount : 0;
+
+  // Handle when user views orders tab
+  const handleOrdersTabClick = () => {
+    setHasViewedOrders(true);
+    setLastOrderCount(orders.length);
+    localStorage.setItem('lastViewedOrderCount', orders.length.toString());
   };
 
   if (!isAuthenticated) {
@@ -152,59 +207,6 @@ const AdminDashboard = () => {
       </div>
     );
   }
-
-  // Fetch bakery items from Supabase
-  const { data: items = [], isLoading: itemsLoading } = useQuery({
-    queryKey: ['admin-bakery-items'],
-    queryFn: async () => {
-      console.log('Fetching bakery items for admin...');
-      const { data, error } = await supabase
-        .from('bakery_items')
-        .select('*')
-        .order('created_at', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching bakery items:', error);
-        throw error;
-      }
-      
-      return data || [];
-    }
-  });
-
-  // Fetch orders with item details from Supabase
-  const { data: orders = [], isLoading: ordersLoading, refetch: refetchOrders } = useQuery({
-    queryKey: ['admin-orders'],
-    queryFn: async () => {
-      console.log('Fetching orders for admin...');
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          bakery_items (
-            image
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching orders:', error);
-        throw error;
-      }
-      
-      return data || [];
-    }
-  });
-
-  // Calculate new orders notification
-  const newOrdersCount = orders.length > lastOrderCount ? orders.length - lastOrderCount : 0;
-
-  // Handle when user views orders tab
-  const handleOrdersTabClick = () => {
-    setHasViewedOrders(true);
-    setLastOrderCount(orders.length);
-    localStorage.setItem('lastViewedOrderCount', orders.length.toString());
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
