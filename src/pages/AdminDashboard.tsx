@@ -11,6 +11,7 @@ import ItemsManagement from '@/components/admin/ItemsManagement';
 import OrdersHistory from '@/components/admin/OrdersHistory';
 import GlobalSalesManagement from '@/components/admin/GlobalSalesManagement';
 import { BannerManagement } from '@/components/admin/BannerManagement';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BakeryItem {
   id: string;
@@ -44,13 +45,13 @@ interface Order {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAdmin, loading, signOut } = useAuth();
   const [hasViewedOrders, setHasViewedOrders] = useState(false);
   const [lastOrderCount, setLastOrderCount] = useState(0);
 
   useEffect(() => {
-    // Check if admin is logged in
-    const isAdminLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (isAdminLoggedIn !== 'true') {
+    // Redirect if not admin
+    if (!loading && !isAdmin) {
       navigate('/admin');
       return;
     }
@@ -60,11 +61,19 @@ const AdminDashboard = () => {
     if (savedOrderCount) {
       setLastOrderCount(parseInt(savedOrderCount));
     }
-  }, [navigate]);
+  }, [isAdmin, loading, navigate]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+        <p className="text-lg">Loading...</p>
+      </div>
+    );
+  }
 
   // Early return if not authenticated
-  const isAdminLoggedIn = localStorage.getItem('adminLoggedIn');
-  if (isAdminLoggedIn !== 'true') {
+  if (!isAdmin) {
     return null;
   }
 
@@ -128,8 +137,8 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
           <div className="flex gap-4">
             <Button 
-              onClick={() => {
-                localStorage.removeItem('adminLoggedIn');
+              onClick={async () => {
+                await signOut();
                 navigate('/admin');
               }}
               variant="outline"

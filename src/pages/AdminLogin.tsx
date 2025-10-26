@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -7,36 +6,54 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Lock } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AdminLogin = () => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn, signUp, isAdmin, loading } = useAuth();
 
   useEffect(() => {
-    // Check if already logged in
-    const isAdminLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (isAdminLoggedIn === 'true') {
+    if (!loading && isAdmin) {
       navigate('/admin/dashboard');
     }
-  }, [navigate]);
+  }, [isAdmin, loading, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password === 'Asm121203') {
-      localStorage.setItem('adminLoggedIn', 'true');
+    if (!email || !password) {
       toast({
-        title: "Login Successful",
-        description: "Welcome to the admin panel!",
-      });
-      navigate('/admin/dashboard');
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Invalid password.",
+        title: "Validation Error",
+        description: "Please enter both email and password.",
         variant: "destructive"
       });
+      return;
+    }
+
+    const { error } = isSignUp 
+      ? await signUp(email, password)
+      : await signIn(email, password);
+
+    if (error) {
+      toast({
+        title: isSignUp ? "Sign Up Failed" : "Login Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: isSignUp ? "Sign Up Successful" : "Login Successful",
+        description: isSignUp 
+          ? "Please check your email to confirm your account." 
+          : "Welcome to the admin panel!",
+      });
+      if (!isSignUp) {
+        navigate('/admin/dashboard');
+      }
     }
   };
 
@@ -63,6 +80,19 @@ const AdminLogin = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@example.com"
+                  required
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
@@ -72,20 +102,27 @@ const AdminLogin = () => {
                   placeholder="Enter password"
                   required
                   className="mt-1"
+                  minLength={6}
                 />
               </div>
 
               <Button 
                 type="submit" 
+                disabled={loading}
                 className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-semibold py-2 rounded-full"
               >
-                Login
+                {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Login')}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="w-full"
+              >
+                {isSignUp ? 'Already have an account? Login' : 'Need an account? Sign Up'}
               </Button>
             </form>
-
-            <div className="mt-6 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-              <p><strong>Demo Password:</strong> Asm121203</p>
-            </div>
           </CardContent>
         </Card>
       </div>
