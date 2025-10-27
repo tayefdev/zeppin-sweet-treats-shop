@@ -65,9 +65,9 @@ const OrderForm = () => {
         .from('global_sales')
         .select('*')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
       
@@ -115,12 +115,10 @@ const OrderForm = () => {
     mutationFn: async (orderData: any) => {
       console.log('Creating order:', orderData);
       
-      // First create the order in Supabase
-      const { data, error } = await supabase
+      // First create the order in Supabase (no select to avoid RLS on SELECT)
+      const { error } = await supabase
         .from('orders')
-        .insert([orderData])
-        .select()
-        .single();
+        .insert([orderData]);
       
       if (error) {
         console.error('Error creating order:', error);
@@ -130,7 +128,7 @@ const OrderForm = () => {
       // Then trigger the Make.com webhook
       await triggerWebhook(orderData);
       
-      return data;
+      return { success: true };
     },
     onSuccess: (data) => {
       console.log('Order created successfully:', data);
