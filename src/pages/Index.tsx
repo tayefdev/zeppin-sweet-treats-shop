@@ -3,11 +3,9 @@ import React, { useState, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Home, Phone, Info, MapPin, Heart, Facebook, Instagram } from 'lucide-react';
+import { Home, Phone, Info, MapPin, Heart, Facebook, Instagram } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useCart } from '@/contexts/CartContext';
-import CartModal from '@/components/CartModal';
 import { useToast } from "@/hooks/use-toast";
 import { BannerCarousel } from '@/components/BannerCarousel';
 
@@ -75,9 +73,7 @@ const ProductSkeleton = () => (
 const Index = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
-  const { addToCart, getTotalItems } = useCart();
   const { toast } = useToast();
 
   // Fetch bakery items
@@ -156,31 +152,6 @@ const Index = () => {
   const filteredItems = selectedCategory === 'All' 
     ? items 
     : items.filter(item => item.category === selectedCategory);
-
-  const handleAddToCart = (item: BakeryItem) => {
-    // Apply individual sale first, then global sale if no individual sale
-    let finalPrice = item.price;
-    let discountText = '';
-    
-    if (item.is_on_sale && item.sale_percentage) {
-      finalPrice = item.price * (1 - item.sale_percentage / 100);
-      discountText = `${item.sale_percentage}% OFF`;
-    } else if (activeSale && activeSale.discount_percentage) {
-      finalPrice = item.price * (1 - activeSale.discount_percentage / 100);
-      discountText = `${activeSale.name} - ${activeSale.discount_percentage}% OFF`;
-    }
-    
-    addToCart({
-      id: item.id,
-      name: item.name,
-      price: finalPrice,
-      image: item.image
-    });
-    toast({
-      title: "Added to Cart",
-      description: `${item.name} has been added to your cart!`,
-    });
-  };
 
   const handleLocationClick = () => {
     const address = "HATIR POOL, DHAKA";
@@ -274,17 +245,6 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               <button onClick={handleLocationClick} className="hover:text-rose-600 transition-colors hidden md:block">
                 <MapPin className="h-5 w-5 text-gray-600 hover:text-rose-600" />
-              </button>
-              <button
-                onClick={() => setIsCartModalOpen(true)}
-                className="relative hover:text-rose-600 transition-colors"
-              >
-                <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-rose-600" />
-                {getTotalItems() > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {getTotalItems()}
-                  </span>
-                )}
               </button>
             </div>
           </div>
@@ -550,21 +510,12 @@ const Index = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardFooter className="space-y-2">
-                      <div className="flex gap-2 w-full">
-                        <Button 
-                          className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
-                          onClick={() => navigate(`/order/${item.id}`)}
-                        >
-                          <ShoppingCart className="h-4 w-4 mr-2" />
-                          Order Now
-                        </Button>
-                        <Button 
-                          className="flex-1 bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
-                          onClick={() => handleAddToCart(item)}
-                        >
-                          Add to Cart
-                        </Button>
-                      </div>
+                      <Button 
+                        className="w-full bg-rose-400 hover:bg-rose-500 text-white font-semibold py-2 rounded-full"
+                        onClick={() => navigate(`/order/${item.id}`)}
+                      >
+                        Order Now
+                      </Button>
                     </CardFooter>
                   </Card>
                 )
@@ -640,9 +591,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-
-      {/* Cart Modal */}
-      <CartModal isOpen={isCartModalOpen} onClose={() => setIsCartModalOpen(false)} />
     </div>
   );
 };

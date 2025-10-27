@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Lock, ArrowLeft } from 'lucide-react';
-import WebhookTester from '@/components/WebhookTester';
 import ItemsManagement from '@/components/admin/ItemsManagement';
 import OrdersHistory from '@/components/admin/OrdersHistory';
 import GlobalSalesManagement from '@/components/admin/GlobalSalesManagement';
@@ -230,8 +229,6 @@ const AdminDashboard = () => {
             </Button>
           </div>
         </div>
-
-        <WebhookTester />
 
         <Tabs defaultValue="items" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
