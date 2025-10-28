@@ -76,10 +76,11 @@ const GlobalSalesManagement = () => {
       });
       setShowAddForm(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error("Error creating sale:", error);
       toast({
         title: "Error",
-        description: "Failed to create sale. Please try again.",
+        description: error.message || "Failed to create sale. Please try again.",
         variant: "destructive"
       });
     }
