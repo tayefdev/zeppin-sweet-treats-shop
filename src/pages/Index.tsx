@@ -479,8 +479,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Countdown Timer */}
-      <CountdownTimer targetDate={new Date('2025-12-31T23:59:59')} />
+      {/* Countdown Timer - Only show when there's an active global sale */}
+      {activeSale && activeSale.end_date && (
+        <CountdownTimer targetDate={new Date(activeSale.end_date)} />
+      )}
 
       {/* Products Section */}
       <section id="products" className="py-12 md:py-16 bg-rose-50">
