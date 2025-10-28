@@ -13,9 +13,19 @@ interface ImageUploadProps {
   value: string;
   onChange: (url: string) => void;
   label?: string;
+  onUploadStart?: () => void;
+  onUploadComplete?: () => void;
+  onUploadError?: (error: Error) => void;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Image" }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({ 
+  value, 
+  onChange, 
+  label = "Image",
+  onUploadStart,
+  onUploadComplete,
+  onUploadError
+}) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -58,25 +68,43 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Ima
   };
 
   const uploadImage = async (file: File) => {
+    console.log('=== IMAGE UPLOAD STARTING ===');
+    console.log('File:', file.name, file.type, file.size);
+    
     setIsUploading(true);
     setUploadProgress(0);
+    onUploadStart?.();
     
     try {
       const result = await uploadToCloudinary(file, {
-        onProgress: (progress) => setUploadProgress(progress),
+        onProgress: (progress) => {
+          console.log('Upload progress:', progress + '%');
+          setUploadProgress(progress);
+        },
         folder: 'bakery-items'
       });
 
+      console.log('=== UPLOAD SUCCESS ===');
+      console.log('Cloudinary URL:', result.secure_url);
+      console.log('Public ID:', result.public_id);
+      
       onChange(result.secure_url);
+      onUploadComplete?.();
+      
       toast({
         title: "Image Uploaded",
         description: "Image has been uploaded successfully!",
       });
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('=== UPLOAD ERROR ===');
+      console.error('Error:', error);
+      
+      const uploadError = error instanceof Error ? error : new Error('Upload failed');
+      onUploadError?.(uploadError);
+      
       toast({
         title: "Upload Failed",
-        description: "Failed to upload image. Please try again.",
+        description: uploadError.message || "Failed to upload image. Please try again.",
         variant: "destructive"
       });
     } finally {

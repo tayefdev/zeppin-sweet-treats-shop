@@ -42,7 +42,9 @@ const ItemsManagement: React.FC<ItemsManagementProps> = ({ items, isLoading }) =
   // Add item mutation
   const addItemMutation = useMutation({
     mutationFn: async (itemData: any) => {
-      console.log('Adding new bakery item:', itemData);
+      console.log('=== ADDING NEW BAKERY ITEM ===');
+      console.log('Item data:', JSON.stringify(itemData, null, 2));
+      
       const { data, error } = await supabase
         .from('bakery_items')
         .insert([itemData])
@@ -50,10 +52,13 @@ const ItemsManagement: React.FC<ItemsManagementProps> = ({ items, isLoading }) =
         .single();
       
       if (error) {
-        console.error('Error adding bakery item:', error);
+        console.error('=== DATABASE ERROR ===');
+        console.error('Error details:', JSON.stringify(error, null, 2));
         throw error;
       }
       
+      console.log('=== ITEM ADDED SUCCESSFULLY ===');
+      console.log('Response:', data);
       return data;
     },
     onSuccess: () => {
@@ -74,11 +79,21 @@ const ItemsManagement: React.FC<ItemsManagementProps> = ({ items, isLoading }) =
       });
       setShowAddForm(false);
     },
-    onError: (error) => {
-      console.error('Error adding item:', error);
+    onError: (error: any) => {
+      console.error('=== MUTATION ERROR ===');
+      console.error('Error:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error details:', error?.details);
+      console.error('Error hint:', error?.hint);
+      
+      let errorMessage = "Failed to add bakery item. Please try again.";
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to add bakery item. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -165,34 +180,70 @@ const ItemsManagement: React.FC<ItemsManagementProps> = ({ items, isLoading }) =
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submitted with data:', newItem);
+    
+    // Validate all required fields
     if (!newItem.name || !newItem.price || !newItem.description || !newItem.image) {
+      const missingFields = [];
+      if (!newItem.name) missingFields.push('name');
+      if (!newItem.price) missingFields.push('price');
+      if (!newItem.description) missingFields.push('description');
+      if (!newItem.image) missingFields.push('image');
+      
+      console.error('Missing fields:', missingFields);
       toast({
         title: "Missing Information",
-        description: "Please fill in all fields.",
+        description: `Please fill in: ${missingFields.join(', ')}`,
         variant: "destructive"
       });
       return;
     }
 
+    // Validate image URL is a Cloudinary URL
+    if (!newItem.image.includes('cloudinary.com')) {
+      console.error('Invalid image URL format:', newItem.image);
+      toast({
+        title: "Invalid Image",
+        description: "Please upload a valid image through Cloudinary.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate price is a valid number
+    const priceNum = parseFloat(newItem.price);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      console.error('Invalid price:', newItem.price);
+      toast({
+        title: "Invalid Price",
+        description: "Please enter a valid price greater than 0.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate sale percentage if on sale
     if (newItem.is_on_sale && (!newItem.sale_percentage || parseFloat(newItem.sale_percentage) <= 0)) {
+      console.error('Invalid sale percentage:', newItem.sale_percentage);
       toast({
         title: "Invalid Sale Percentage",
-        description: "Please enter a valid sale percentage.",
+        description: "Please enter a valid sale percentage greater than 0.",
         variant: "destructive"
       });
       return;
     }
 
     const itemData = {
-      name: newItem.name,
-      price: parseFloat(newItem.price),
-      description: newItem.description,
-      image: newItem.image,
+      name: newItem.name.trim(),
+      price: priceNum,
+      description: newItem.description.trim(),
+      image: newItem.image.trim(),
       category: newItem.category,
       is_on_sale: newItem.is_on_sale,
       sale_percentage: newItem.is_on_sale ? parseFloat(newItem.sale_percentage) : null
     };
 
+    console.log('Submitting item data to database:', itemData);
     addItemMutation.mutate(itemData);
   };
 
