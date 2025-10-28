@@ -10,6 +10,7 @@ import { useCart } from '@/contexts/CartContext';
 import CartModal from '@/components/CartModal';
 import { useToast } from "@/hooks/use-toast";
 import { BannerCarousel } from '@/components/BannerCarousel';
+import { CountdownTimer } from '@/components/CountdownTimer';
 
 interface BakeryItem {
   id: string;
@@ -477,6 +478,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Countdown Timer */}
+      <CountdownTimer targetDate={new Date('2025-12-31T23:59:59')} />
 
       {/* Products Section */}
       <section id="products" className="py-12 md:py-16 bg-rose-50">
