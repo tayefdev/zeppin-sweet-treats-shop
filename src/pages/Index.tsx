@@ -122,9 +122,25 @@ const Index = () => {
       console.log('Active global sale:', data);
       return data || null;
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
+  });
+
+  // Fetch logo from site settings
+  const { data: logoUrl } = useQuery({
+    queryKey: ['logo'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'logo_url')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching logo:', error);
+        return '/lovable-uploads/6f30b366-0e3c-498f-a5ab-c9b2a19bac7a.png'; // fallback
+      }
+      
+      return data?.value || '/lovable-uploads/6f30b366-0e3c-498f-a5ab-c9b2a19bac7a.png';
+    },
   });
 
   // Fetch all banners
@@ -235,7 +251,7 @@ const Index = () => {
             {/* Logo - Clickable */}
             <button onClick={handleHomeClick} className="flex items-center space-x-3 flex-shrink-0">
               <LazyImage 
-                src="/lovable-uploads/6f30b366-0e3c-498f-a5ab-c9b2a19bac7a.png" 
+                src={logoUrl || "/lovable-uploads/6f30b366-0e3c-498f-a5ab-c9b2a19bac7a.png"} 
                 alt="Zeppin Bakery Logo" 
                 className="h-16 w-16 md:h-20 md:w-20 object-contain hover:opacity-80 transition-opacity"
               />

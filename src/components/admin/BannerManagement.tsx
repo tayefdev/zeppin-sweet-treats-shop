@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload, Trash2, GripVertical, MoveUp, MoveDown } from 'lucide-react';
+import { uploadToCloudinary, extractPublicId } from '@/lib/cloudinary';
 
 interface BannerSetting {
   id: string;
@@ -20,6 +21,7 @@ export const BannerManagement = () => {
   const [bannerType, setBannerType] = useState<'image' | 'video'>('image');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -41,21 +43,13 @@ export const BannerManagement = () => {
       if (!file) throw new Error('No file selected');
 
       setUploading(true);
+      setUploadProgress(0);
 
-      // Upload to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('banners')
-        .getPublicUrl(filePath);
+      // Upload to Cloudinary
+      const result = await uploadToCloudinary(file, {
+        onProgress: (progress) => setUploadProgress(progress),
+        folder: 'banners'
+      });
 
       // Get the highest display order
       const maxOrder = banners.length > 0 
@@ -67,13 +61,13 @@ export const BannerManagement = () => {
         .from('banner_settings')
         .insert({
           banner_type: bannerType,
-          banner_url: publicUrl,
+          banner_url: result.secure_url,
           display_order: maxOrder + 1,
         });
 
       if (insertError) throw insertError;
 
-      return publicUrl;
+      return result.secure_url;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['banners'] });
@@ -83,6 +77,7 @@ export const BannerManagement = () => {
       });
       setFile(null);
       setUploading(false);
+      setUploadProgress(0);
     },
     onError: (error) => {
       console.error('Upload error:', error);
@@ -92,15 +87,24 @@ export const BannerManagement = () => {
         variant: 'destructive',
       });
       setUploading(false);
+      setUploadProgress(0);
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (banner: BannerSetting) => {
-      // Delete from storage
-      const fileName = banner.banner_url.split('/').pop();
-      if (fileName) {
-        await supabase.storage.from('banners').remove([fileName]);
+      // Delete from Cloudinary
+      if (banner.banner_url.includes('cloudinary.com')) {
+        const publicId = extractPublicId(banner.banner_url);
+        if (publicId) {
+          try {
+            await supabase.functions.invoke('delete-cloudinary-asset', {
+              body: { publicId }
+            });
+          } catch (error) {
+            console.error('Error deleting from Cloudinary:', error);
+          }
+        }
       }
 
       // Delete from database
@@ -278,7 +282,7 @@ export const BannerManagement = () => {
               {uploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
+                  Uploading... {uploadProgress}%
                 </>
               ) : (
                 <>

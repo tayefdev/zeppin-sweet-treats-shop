@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, X, Image } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToCloudinary, extractPublicId } from "@/lib/cloudinary";
 
 interface ImageUploadProps {
   value: string;
@@ -17,6 +18,7 @@ interface ImageUploadProps {
 const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Image" }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -57,31 +59,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Ima
 
   const uploadImage = async (file: File) => {
     setIsUploading(true);
+    setUploadProgress(0);
     
     try {
-      // Create unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = fileName;
+      const result = await uploadToCloudinary(file, {
+        onProgress: (progress) => setUploadProgress(progress),
+        folder: 'bakery-items'
+      });
 
-      // Upload to Supabase Storage
-      const { error: uploadError, data } = await supabase.storage
-        .from('bakery-items')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('bakery-items')
-        .getPublicUrl(filePath);
-
-      onChange(publicUrl);
+      onChange(result.secure_url);
       toast({
         title: "Image Uploaded",
         description: "Image has been uploaded successfully!",
@@ -95,18 +81,18 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Ima
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
   const removeImage = async () => {
-    // If it's a Supabase storage URL, delete the file
-    if (value.includes('bakery-items')) {
+    if (value.includes('cloudinary.com')) {
       try {
-        const fileName = value.split('/').pop();
-        if (fileName) {
-          await supabase.storage
-            .from('bakery-items')
-            .remove([fileName]);
+        const publicId = extractPublicId(value);
+        if (publicId) {
+          await supabase.functions.invoke('delete-cloudinary-asset', {
+            body: { publicId }
+          });
         }
       } catch (error) {
         console.error('Error deleting image:', error);
@@ -148,8 +134,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Ima
         <Card 
           className={`border-2 border-dashed transition-colors cursor-pointer ${
             isDragging 
-              ? 'border-rose-500 bg-rose-50' 
-              : 'border-gray-300 hover:border-gray-400'
+              ? 'border-primary bg-primary/5' 
+              : 'border-muted-foreground/25 hover:border-muted-foreground/50'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -160,19 +146,19 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Ima
             <div className="text-center">
               {isUploading ? (
                 <div className="space-y-2">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500 mx-auto"></div>
-                  <p className="text-gray-600">Uploading...</p>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-muted-foreground">Uploading... {uploadProgress}%</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                    <Upload className="h-6 w-6 text-gray-400" />
+                  <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                    <Upload className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-lg font-medium text-gray-700">
+                    <p className="text-lg font-medium">
                       Drop your image here
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       or click to browse files
                     </p>
                   </div>
@@ -197,7 +183,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "Ima
       
       {/* URL Input as fallback */}
       <div className="space-y-1">
-        <Label className="text-sm text-gray-600">Or paste image URL:</Label>
+        <Label className="text-sm text-muted-foreground">Or paste image URL:</Label>
         <Input
           type="url"
           value={value}

@@ -14,6 +14,7 @@ import ItemsManagement from '@/components/admin/ItemsManagement';
 import OrdersHistory from '@/components/admin/OrdersHistory';
 import GlobalSalesManagement from '@/components/admin/GlobalSalesManagement';
 import { BannerManagement } from '@/components/admin/BannerManagement';
+import LogoManagement from '@/components/admin/LogoManagement';
 
 interface BakeryItem {
   id: string;
@@ -231,10 +232,11 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="items" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="items">Manage Items</TabsTrigger>
             <TabsTrigger value="sales">Global Sales</TabsTrigger>
             <TabsTrigger value="banner">Banner</TabsTrigger>
+            <TabsTrigger value="logo">Logo</TabsTrigger>
             <TabsTrigger value="orders" onClick={handleOrdersTabClick} className="relative">
               Order History
               {newOrdersCount > 0 && (
@@ -255,6 +257,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="banner" className="space-y-6">
             <BannerManagement />
+          </TabsContent>
+
+          <TabsContent value="logo" className="space-y-6">
+            <LogoManagement />
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">
