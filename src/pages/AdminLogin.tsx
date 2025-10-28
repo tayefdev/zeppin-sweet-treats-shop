@@ -41,7 +41,7 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -52,7 +52,7 @@ const AdminLogin = () => {
       const { data: roles, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', data.user.id)
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .eq('role', 'admin')
         .maybeSingle();
 
