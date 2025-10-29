@@ -424,7 +424,7 @@ const Index = () => {
             <div 
                 className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
                 onClick={() => {
-                  setSelectedCategory('Cake');
+                  setSelectedCategory('cakes');
                   scrollToMenu();
                 }}
               >
@@ -443,7 +443,7 @@ const Index = () => {
             <div 
                 className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
                 onClick={() => {
-                  setSelectedCategory('Brownie');
+                  setSelectedCategory('cookies');
                   scrollToMenu();
                 }}
               >
@@ -459,10 +459,10 @@ const Index = () => {
 
             {/* Cupcake Collections */}
             <div className="text-center">
-              <div 
+            <div 
                 className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
                 onClick={() => {
-                  setSelectedCategory('Cupcake');
+                  setSelectedCategory('cupcakes');
                   scrollToMenu();
                 }}
               >
