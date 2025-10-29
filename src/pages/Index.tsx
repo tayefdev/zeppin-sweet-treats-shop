@@ -421,10 +421,10 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
             {/* Custom Cakes */}
             <div className="text-center">
-              <div 
+            <div 
                 className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
                 onClick={() => {
-                  setSelectedCategory('Cakes');
+                  setSelectedCategory('Cake');
                   scrollToMenu();
                 }}
               >
@@ -440,10 +440,10 @@ const Index = () => {
 
             {/* Brownies */}
             <div className="text-center">
-              <div 
+            <div 
                 className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
                 onClick={() => {
-                  setSelectedCategory('Dessert');
+                  setSelectedCategory('Brownie');
                   scrollToMenu();
                 }}
               >
