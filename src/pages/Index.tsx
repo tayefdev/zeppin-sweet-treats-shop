@@ -104,6 +104,29 @@ const Index = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch signature items
+  const { data: signatureItems = [] } = useQuery({
+    queryKey: ['signature-items'],
+    queryFn: async () => {
+      console.log('Fetching signature items from Supabase...');
+      const { data, error } = await supabase
+        .from('signature_items')
+        .select('*')
+        .order('display_order', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching signature items:', error);
+        throw error;
+      }
+      
+      console.log('Fetched signature items:', data);
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   // Fetch active global sales
   const { data: activeSale } = useQuery({
     queryKey: ['active-global-sale'],
@@ -413,68 +436,30 @@ const Index = () => {
       )}
 
 
-      {/* Signature Section */}
+      {/* Signature Section - Dynamic from Database */}
       <section className="py-12 md:py-16 bg-white">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl md:text-4xl font-serif text-center text-gray-800 mb-8 md:mb-12 italic">Signature</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
-            {/* Custom Cakes */}
-            <div className="text-center">
-            <div 
-                className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
-                onClick={() => {
-                  setSelectedCategory('cakes');
-                  scrollToMenu();
-                }}
-              >
-                <LazyImage 
-                  src="/lovable-uploads/7a8a873c-4e49-44ee-9063-a6667dc9c301.png" 
-                  alt="Custom Cakes"
-                  className="w-full h-full object-cover"
-                />
+            {signatureItems.map((item) => (
+              <div key={item.id} className="text-center">
+                <div 
+                  className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
+                  onClick={() => {
+                    setSelectedCategory(item.category);
+                    scrollToMenu();
+                  }}
+                >
+                  <LazyImage 
+                    src={item.image} 
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h4 className="text-xl font-serif text-gray-800 mb-2">{item.title}</h4>
               </div>
-              <h4 className="text-xl font-serif text-gray-800 mb-2">Custom Cake</h4>
-              <p className="text-gray-600 text-sm">Beautiful and delicious cakes for every occasion</p>
-            </div>
-
-            {/* Brownies */}
-            <div className="text-center">
-            <div 
-                className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
-                onClick={() => {
-                  setSelectedCategory('cookies');
-                  scrollToMenu();
-                }}
-              >
-                <LazyImage 
-                  src="/lovable-uploads/40b5c73f-9655-4801-ab66-33d8e09eebb5.png" 
-                  alt="Brownies"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <h4 className="text-xl font-serif text-gray-800 mb-2">Brownies</h4>
-              <p className="text-gray-600 text-sm">Rich and fudgy chocolate brownies</p>
-            </div>
-
-            {/* Cupcake Collections */}
-            <div className="text-center">
-            <div 
-                className="aspect-square mb-4 rounded-lg overflow-hidden bg-rose-100 cursor-pointer hover:scale-105 transition-transform duration-300"
-                onClick={() => {
-                  setSelectedCategory('cupcakes');
-                  scrollToMenu();
-                }}
-              >
-                <LazyImage 
-                  src="/lovable-uploads/54b7ffd4-f04c-42e2-9fe6-e610d1ab5050.png" 
-                  alt="Cupcake Collections"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <h4 className="text-xl font-serif text-gray-800 mb-2">Cupcake Collections</h4>
-              <p className="text-gray-600 text-sm">Gourmet cupcakes for every craving</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>

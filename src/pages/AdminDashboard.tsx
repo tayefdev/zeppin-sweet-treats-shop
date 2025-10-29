@@ -11,6 +11,7 @@ import OrdersHistory from '@/components/admin/OrdersHistory';
 import GlobalSalesManagement from '@/components/admin/GlobalSalesManagement';
 import { BannerManagement } from '@/components/admin/BannerManagement';
 import LogoManagement from '@/components/admin/LogoManagement';
+import { SignatureManagement } from '@/components/admin/SignatureManagement';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface BakeryItem {
@@ -167,9 +168,10 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="items" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="items">Manage Items</TabsTrigger>
             <TabsTrigger value="sales">Global Sales</TabsTrigger>
+            <TabsTrigger value="signature">Signature</TabsTrigger>
             <TabsTrigger value="banner">Banner</TabsTrigger>
             <TabsTrigger value="logo">Logo</TabsTrigger>
             <TabsTrigger value="orders" onClick={handleOrdersTabClick} className="relative">
@@ -188,6 +190,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="sales" className="space-y-6">
             <GlobalSalesManagement />
+          </TabsContent>
+
+          <TabsContent value="signature" className="space-y-6">
+            <SignatureManagement />
           </TabsContent>
 
           <TabsContent value="banner" className="space-y-6">

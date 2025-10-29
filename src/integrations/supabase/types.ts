@@ -169,6 +169,36 @@ export type Database = {
           },
         ]
       }
+      signature_items: {
+        Row: {
+          category: string
+          created_at: string
+          display_order: number | null
+          id: string
+          image: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string
