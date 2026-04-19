@@ -9,6 +9,22 @@ import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { z } from "zod";
+
+// Validation schema for customer order input
+const orderSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Please enter a valid email address").max(255, "Email is too long"),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Phone number is too short")
+    .max(20, "Phone number is too long")
+    .regex(/^[+\d\s\-()]+$/, "Phone number contains invalid characters"),
+  address: z.string().trim().min(10, "Address must be at least 10 characters").max(500, "Address must be less than 500 characters"),
+  notes: z.string().trim().max(1000, "Notes must be less than 1000 characters").optional().or(z.literal("")),
+  quantity: z.number().int().min(1, "Quantity must be at least 1").max(50, "Maximum quantity is 50 per order"),
+});
 
 interface BakeryItem {
   id: string;
