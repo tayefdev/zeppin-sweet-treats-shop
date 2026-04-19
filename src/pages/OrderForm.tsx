@@ -183,25 +183,27 @@ const OrderForm = () => {
     
     if (!item) return;
 
-    // Validate quantity first
-    if (quantity <= 0) {
+    // Validate all fields with zod schema
+    const validation = orderSchema.safeParse({
+      name: customerInfo.name,
+      email: customerInfo.email,
+      phone: customerInfo.phone,
+      address: customerInfo.address,
+      notes: customerInfo.notes,
+      quantity,
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
       toast({
-        title: "Invalid Quantity",
-        description: "Please enter a quantity greater than 0.",
-        variant: "destructive"
+        title: "Invalid Information",
+        description: firstError.message,
+        variant: "destructive",
       });
       return;
     }
 
-    // Validate form
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
+    const validated = validation.data;
 
     // Calculate final price with sale discount (individual sale takes priority over global sale)
     let finalPrice = item.price;
@@ -215,13 +217,13 @@ const OrderForm = () => {
       order_id: `ORDER-${Date.now()}`,
       item_id: item.id,
       item_name: item.name,
-      quantity,
-      total_amount: finalPrice * quantity,
-      customer_name: customerInfo.name,
-      customer_email: customerInfo.email,
-      customer_phone: customerInfo.phone,
-      customer_address: customerInfo.address,
-      special_notes: customerInfo.notes || null
+      quantity: validated.quantity,
+      total_amount: finalPrice * validated.quantity,
+      customer_name: validated.name,
+      customer_email: validated.email,
+      customer_phone: validated.phone,
+      customer_address: validated.address,
+      special_notes: validated.notes || null,
     };
 
     createOrderMutation.mutate(orderData);
