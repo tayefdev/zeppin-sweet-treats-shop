@@ -9,6 +9,22 @@ import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { z } from "zod";
+
+// Validation schema for customer order input
+const orderSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Please enter a valid email address").max(255, "Email is too long"),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Phone number is too short")
+    .max(20, "Phone number is too long")
+    .regex(/^[+\d\s\-()]+$/, "Phone number contains invalid characters"),
+  address: z.string().trim().min(10, "Address must be at least 10 characters").max(500, "Address must be less than 500 characters"),
+  notes: z.string().trim().max(1000, "Notes must be less than 1000 characters").optional().or(z.literal("")),
+  quantity: z.number().int().min(1, "Quantity must be at least 1").max(50, "Maximum quantity is 50 per order"),
+});
 
 interface BakeryItem {
   id: string;
@@ -167,25 +183,27 @@ const OrderForm = () => {
     
     if (!item) return;
 
-    // Validate quantity first
-    if (quantity <= 0) {
+    // Validate all fields with zod schema
+    const validation = orderSchema.safeParse({
+      name: customerInfo.name,
+      email: customerInfo.email,
+      phone: customerInfo.phone,
+      address: customerInfo.address,
+      notes: customerInfo.notes,
+      quantity,
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
       toast({
-        title: "Invalid Quantity",
-        description: "Please enter a quantity greater than 0.",
-        variant: "destructive"
+        title: "Invalid Information",
+        description: firstError.message,
+        variant: "destructive",
       });
       return;
     }
 
-    // Validate form
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
+    const validated = validation.data;
 
     // Calculate final price with sale discount (individual sale takes priority over global sale)
     let finalPrice = item.price;
@@ -199,13 +217,13 @@ const OrderForm = () => {
       order_id: `ORDER-${Date.now()}`,
       item_id: item.id,
       item_name: item.name,
-      quantity,
-      total_amount: finalPrice * quantity,
-      customer_name: customerInfo.name,
-      customer_email: customerInfo.email,
-      customer_phone: customerInfo.phone,
-      customer_address: customerInfo.address,
-      special_notes: customerInfo.notes || null
+      quantity: validated.quantity,
+      total_amount: finalPrice * validated.quantity,
+      customer_name: validated.name,
+      customer_email: validated.email,
+      customer_phone: validated.phone,
+      customer_address: validated.address,
+      special_notes: validated.notes || null,
     };
 
     createOrderMutation.mutate(orderData);
